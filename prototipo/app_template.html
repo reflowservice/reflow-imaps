@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REFLOW iMAPS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Syncopate:wght@400;700&family=Jost:wght@300&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* REFLOW iMAPS: la planimetria vive su un campo blu notte; i contenuti salgono su fogli chiari.
+     Un solo elemento forte: il campo FV luminoso. Tutto il resto è sobrio. */
+  --night:#100428; --night-2:#170838; --navy:#18063c;
+  --field:#2a1d5e; --field-line:#4d4190; --field-grid:rgba(185,175,240,.16);
+  --cyan:#17b3e8; --blue:#2d5be3;
+  --paper:#ffffff; --mist:#f4f3f8; --ink:#1d1838; --muted:#6a6684; --hair:#e6e3f0;
+  --done:#2bb673;
+  --c-R:#e5383b; --c-MP:#f48c06; --c-I1:#f2c100; --c-I2:#8b5cf6; --c-S:#2f7df6; --c-X:#14b8a6;
+  --font:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --r-sheet:16px; --r-ctl:10px;
+  --shadow-sheet:0 24px 60px rgba(8,2,30,.42),0 2px 8px rgba(8,2,30,.18);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--night);color:var(--ink);font:14px/1.45 var(--font);display:flex;flex-direction:column;-webkit-font-smoothing:antialiased;font-feature-settings:"cv11","ss01"}
+[hidden]{display:none!important}
+button{font:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+
+/* ---------- barra superiore ---------- */
+header{position:relative;z-index:10;display:flex;align-items:center;gap:18px;min-height:62px;padding:10px 18px;color:#fff;background:linear-gradient(180deg,#1a0a40,#120531);border-bottom:1px solid rgba(23,179,232,.35)}
+.brand{height:26px;width:auto;display:block;opacity:.96}
+.hsep{width:1px;height:28px;background:rgba(255,255,255,.16)}
+.back{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 12px 0 9px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.04);color:#e8e5f7;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s,border-color .15s}
+.back:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.3)}
+.back svg{width:15px;height:15px}
+h1{margin:0;min-width:0;display:flex;flex-direction:column;gap:1px}
+h1 .kick{font-size:12px;font-weight:500;color:#a99fd6;letter-spacing:.01em}
+h1 #hname{font-size:17px;font-weight:600;letter-spacing:-.015em;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+h1 small{font-size:11.5px;color:rgba(232,229,247,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:56ch}
+.camp{height:34px;font:500 13px var(--font);color:#fff;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:0 12px;max-width:280px}
+.camp option{color:var(--ink)}
+.kpis{margin-left:auto;display:flex;padding:4px;gap:2px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1)}
+.kpi{display:flex;flex-direction:column;align-items:flex-start;gap:0;min-width:96px;padding:5px 12px 6px;border:0;border-radius:10px;background:transparent;color:#d9d4f0;cursor:pointer;text-align:left;transition:background .15s}
+.kpi:hover{background:rgba(255,255,255,.07)}
+.kpi b{font-size:19px;font-weight:600;letter-spacing:-.02em;color:#fff;font-variant-numeric:tabular-nums;line-height:1.15}
+.kpi span{font-size:11px;color:#a99fd6}
+.kpi.ok b{color:#5ee0a0} .kpi.warn b{color:#ffbf5e}
+.kpi[aria-pressed="true"]{background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.kpi[aria-pressed="true"] b{color:var(--navy)} .kpi.ok[aria-pressed="true"] b{color:#14925a} .kpi.warn[aria-pressed="true"] b{color:#c47600}
+.kpi[aria-pressed="true"] span{color:var(--muted)}
+
+/* ---------- pagina iniziale ---------- */
+#home{flex:1;overflow:auto;background:var(--mist)}
+.hero{background:#fff;border-bottom:1px solid var(--hair);color:var(--ink);padding:34px 24px 28px}
+.hero-in,.home-in{max-width:1120px;margin:0 auto}
+.hero h2{margin:0;font-size:30px;line-height:1.1;font-weight:600;letter-spacing:-.03em;color:var(--navy)}
+.hero p{margin:6px 0 0;max-width:60ch;color:var(--muted);font-size:14px;line-height:1.55}
+.hero-row{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:20px}
+.search{position:relative;flex:0 1 340px}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted)}
+.search input{width:100%;height:42px;padding:0 14px 0 36px;font:14px var(--font);color:var(--ink);background:var(--mist);border:1px solid var(--hair);border-radius:12px}
+.search input:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(23,179,232,.18);background:#fff}
+.search input::placeholder{color:#9a96b0}
+.home-in{padding:28px 24px 56px;display:grid;gap:34px}
+.cliente{display:grid;gap:14px}
+.cliente-h{display:flex;align-items:baseline;gap:12px;border-bottom:1px solid var(--hair);padding-bottom:10px}
+.cliente-h h3{margin:0;font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--navy)}
+.cliente-h span{font-size:13px;color:var(--muted)}
+.toast{position:fixed!important;z-index:70}
+.modal{position:fixed;inset:0;z-index:60;background:rgba(16,4,40,.45);display:grid;place-items:center;padding:20px;overflow:auto}
+.modal[hidden]{display:none}
+.modal .sheet{position:relative;width:min(640px,100%);max-height:calc(100vh - 40px);overflow:auto;padding:22px 24px 24px;border-radius:var(--r-sheet);box-shadow:0 24px 60px rgba(10,2,30,.35)}
+.modal h2{margin:0 30px 4px 0;font-size:21px;font-weight:600;letter-spacing:-.02em;color:var(--navy)}
+.modal h3{margin:18px 0 6px;font-size:13px;font-weight:600;color:var(--navy)}
+.modal .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.modal .grid3{display:grid;grid-template-columns:1fr 1.4fr .7fr;gap:10px 14px}
+.modal label.f{display:grid;gap:4px;font-size:12px;color:var(--muted)}
+.modal label.f input,.modal label.f textarea{min-width:0;width:100%;box-sizing:border-box;height:36px;font:14px var(--font);padding:0 10px;border:1px solid var(--hair);border-radius:9px;color:var(--ink);background:#fff}
+.modal label.f textarea{height:auto;padding:8px 10px;resize:vertical}
+.modal label.f input[type=file]{height:auto;padding:7px 8px;font-size:12.5px}
+.modal .req{color:#c92a2a}
+.modal .acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.modal .flist{display:grid;gap:6px;margin:6px 0 0;padding:0;list-style:none;font-size:13px}
+.modal .flist li{display:flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--hair);border-radius:9px;background:var(--mist)}
+.modal .flist li b{font-weight:600;color:var(--navy);min-width:120px}
+.modal .flist a{color:var(--blue);text-decoration:none;overflow-wrap:anywhere}
+.modal dl{display:grid;grid-template-columns:max-content 1fr;gap:6px 16px;margin:12px 0 0;font-size:13.5px}
+.modal dt{color:var(--muted)}
+.modal dd{margin:0}
+.card.prep{border-style:dashed;cursor:pointer}
+.card.prep .thumb{display:grid;place-items:center;background:repeating-linear-gradient(135deg,#f6f5fb 0 10px,#fbfbfd 10px 20px)}
+.badge-prep{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:#fff4e0;color:#8a5a00;font-size:12px;font-weight:600;border:1px solid #f6dfb1}
+.hero-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+@media (max-width:620px){.modal .grid2,.modal .grid3{grid-template-columns:1fr}}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px}
+.card{display:grid;grid-template-rows:auto 1fr;padding:0;overflow:hidden;text-align:left;font:inherit;color:inherit;background:var(--paper);border:1px solid var(--hair);border-radius:14px;cursor:pointer;box-shadow:0 1px 2px rgba(24,6,60,.05);transition:transform .18s ease,box-shadow .18s ease,border-color .18s}
+.card:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(24,6,60,.14);border-color:#d6d1ea}
+.thumb{aspect-ratio:16/9;background:radial-gradient(circle at 1px 1px,rgba(24,6,60,.07) 1px,transparent 1.4px) 0 0/14px 14px,#fbfbfd;border-bottom:1px solid var(--hair);display:block}
+.thumb svg{width:100%;height:100%;display:block}
+.card-b{display:grid;gap:6px;padding:14px 16px 16px}
+.card .nm{font-size:16px;font-weight:600;letter-spacing:-.015em;color:var(--navy)}
+.card .loc{font-size:12.5px;color:var(--muted)}
+.card .cp{font-size:13px;color:var(--ink);margin-top:4px}
+.bar{height:5px;border-radius:999px;background:#ece9f5;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--done),#5ee0a0)}
+.card .stat{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.card .stat b{color:var(--ink);font-weight:600}
+.empty{color:var(--muted);text-align:center;padding:48px 0}
+
+/* ---------- mappa ---------- */
+main{flex:1;display:flex;min-height:0}
+#mapwrap{position:relative;flex:1;min-height:0;overflow:hidden;background:radial-gradient(circle at 1px 1px,rgba(24,6,60,.07) 1px,transparent 1.4px) 0 0/22px 22px,#fbfbfd}
+svg#map{width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+svg#map.drag{cursor:grabbing}
+.vela{fill:#eceaf4;stroke:#c9c5da;stroke-width:.6}
+.grid{stroke:#d4d0e3;stroke-width:.25;fill:none}
+#map text{user-select:none;-webkit-user-select:none}
+.flab{font:600 9px var(--font);fill:#6a6684;letter-spacing:.02em}
+.tlab{font:500 7.5px var(--font);fill:#8a86a0}
+.mod{stroke:rgba(24,6,60,.45);stroke-width:.5;pointer-events:none}
+.mod.done{stroke:var(--done);stroke-width:1.6}
+.mod.okk{opacity:.35}
+.mod.dub{stroke-dasharray:2 1.2}
+.mod.dim{opacity:.16}
+.hov{fill:rgba(45,91,227,.08);stroke:var(--blue);stroke-width:1.1;pointer-events:none}
+.selbox{fill:none;stroke:var(--navy);stroke-width:1.8;pointer-events:none}
+
+/* comandi flottanti (scuri, sopra il campo) */
+.glass-d{background:rgba(255,255,255,.88);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);border:1px solid var(--hair);box-shadow:0 8px 24px rgba(24,6,60,.10),0 1px 2px rgba(24,6,60,.06)}
+.tools{position:absolute;left:16px;bottom:16px;display:flex;flex-direction:column;padding:4px;gap:2px;border-radius:12px}
+.tools button{width:36px;height:36px;display:grid;place-items:center;border:0;border-radius:9px;background:transparent;color:var(--ink);cursor:pointer}
+.tools button:hover{background:var(--mist)}
+.tools svg{width:17px;height:17px}
+.topbar{position:absolute;top:14px;right:14px;display:flex;align-items:center;gap:4px;padding:4px;border-radius:12px}
+.btn{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 13px;font:500 13px var(--font);color:var(--ink);background:var(--paper);border:1px solid var(--hair);border-radius:var(--r-ctl);cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+.btn svg{width:15px;height:15px;flex:none}
+.topbar .btn{background:transparent;border-color:transparent;color:var(--ink)}
+.topbar .btn:disabled{opacity:.4;cursor:default;background:transparent}
+.topbar .btn:hover{background:var(--mist)}
+.topbar .btn[aria-expanded="true"]{background:#ece9f5;color:var(--navy)}
+.topbar .btn.pdf{background:var(--navy);color:#fff;font-weight:600}
+.topbar .btn.pdf:hover{background:#2a1260}
+.topbar .sep{width:1px;height:20px;background:var(--hair);margin:0 3px}
+.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
+.btn.primary:hover{background:#2a1260}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.mapmark{position:absolute;right:18px;bottom:16px;height:22px;opacity:.55;pointer-events:none}
+#tip{position:absolute;pointer-events:none;background:var(--navy);color:#fff;font-size:12px;font-weight:500;padding:5px 9px;border-radius:7px;display:none;white-space:nowrap;box-shadow:0 6px 18px rgba(24,6,60,.25);font-variant-numeric:tabular-nums}
+.ghost{fill:rgba(229,56,59,.55);stroke:var(--navy);stroke-width:1.2;stroke-dasharray:2 1.2;pointer-events:none}
+.movebar{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:7;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;max-width:calc(100% - 28px);padding:10px 12px 10px 16px;border-radius:14px;font-size:13.5px;color:var(--ink)}
+.movebar b{color:var(--navy)}
+.msel{fill:rgba(23,179,232,.30);stroke:var(--cyan);stroke-width:1.1;pointer-events:none}
+.lasso{fill:rgba(23,179,232,.08);stroke:var(--cyan);stroke-width:1;stroke-dasharray:4 3;pointer-events:none}
+.topbar .btn[aria-pressed="true"]{background:var(--cyan);color:#06263a;font-weight:600}
+.bulk{padding:20px 22px 22px;top:14px;left:14px;width:min(400px,calc(100% - 28px));max-height:calc(100% - 28px);overflow:auto}
+.bulk h2,.rilpop h2{margin:0 30px 6px 0;font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--navy)}
+.bulk .cnt{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
+.bulk .cnt b{font-size:26px;font-weight:600;letter-spacing:-.02em;color:var(--navy);font-variant-numeric:tabular-nums}
+.bulk .cnt span{color:var(--muted);font-size:13px;margin-right:auto}
+.bulk .btn[aria-pressed="true"]{background:var(--cyan);border-color:var(--cyan);color:#06263a}
+.bulk .where{margin:12px 0 0;padding:9px 11px;border-radius:10px;background:var(--mist);font-size:12.5px;color:var(--ink)}
+.rilpop{padding:20px 22px 22px;top:14px;left:50%;transform:translateX(-50%);width:min(440px,calc(100% - 28px))}
+.msgmap{position:absolute;left:50%;transform:translateX(-50%);bottom:18px;background:var(--paper);color:var(--ink);padding:9px 16px;border-radius:10px;font-size:13px;z-index:6;box-shadow:var(--shadow-sheet)}
+
+/* ---------- fogli (chiari, sopra il campo) ---------- */
+.pop{position:absolute;z-index:5;border-radius:var(--r-sheet);box-shadow:0 18px 48px rgba(24,6,60,.16),0 2px 6px rgba(24,6,60,.08)}
+.pop .x,.modal .x{position:absolute;top:10px;right:10px;width:30px;height:30px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;z-index:2}
+.pop .x:hover,.modal .x:hover{background:var(--mist);color:var(--ink)}
+.sheet{background:#fff;border:1px solid var(--hair)}
+.legend{top:62px;right:14px;padding:14px 16px;display:grid;gap:7px;width:min(360px,calc(100% - 28px));max-height:calc(100% - 80px);overflow:auto;font-size:12.5px;color:var(--ink);border-radius:14px}
+.legend .lr{display:flex;align-items:center;gap:6px;min-height:24px}
+.legend .lr .lt{flex:1}
+.legend .lr .del{border:0;background:none;color:var(--muted);cursor:pointer;width:26px;height:26px;border-radius:7px;display:grid;place-items:center}
+.legend .lr .del:hover{background:#fdecec;color:#c92a2a}
+.legend .lr .edt:hover{background:var(--mist);color:var(--navy)}
+.legend .lr .del svg{width:14px;height:14px}
+.legend .ledit{display:grid;gap:7px;padding:10px;border-radius:10px;background:var(--mist);border:1px solid var(--hair)}
+.legend .ledit input,.legend .ledit textarea{width:100%;height:32px;font:13px var(--font);padding:0 9px;border:1px solid var(--hair);border-radius:8px;background:#fff;color:var(--ink)}
+.legend .ledit textarea{height:auto;padding:6px 9px;resize:vertical}
+.legend .ledit label{font-size:11.5px;color:var(--muted)}
+.legend .ledit div{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.cpick{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.cpick .cs{width:24px;height:24px;border-radius:7px;border:2px solid #fff;box-shadow:0 0 0 1px var(--hair);cursor:pointer;padding:0}
+.cpick .cs[aria-pressed="true"]{box-shadow:0 0 0 2px var(--navy)}
+.cpick input[type=color]{width:34px;height:26px;padding:0 2px;border:1px solid var(--hair);border-radius:7px;background:#fff;cursor:pointer}
+.legend .lconf{display:grid;gap:8px;padding:10px;border-radius:10px;background:#fff5f5;border:1px solid #ffd8d8;font-size:12.5px}
+.legend .lconf div{display:flex;gap:6px}
+.legend .lsec{margin-top:4px;padding-top:9px;border-top:1px solid var(--hair);font-size:11.5px;color:var(--muted)}
+.legend .lnew{justify-self:start;margin-top:4px}
+.btn.danger{background:#c92a2a;border-color:#c92a2a;color:#fff;font-weight:600}
+.legend .note{color:var(--muted);font-size:11.5px;margin-top:4px;line-height:1.5}
+.scheda{top:14px;left:14px;width:min(420px,calc(100% - 28px));max-height:calc(100% - 28px);overflow:auto}
+.listpop{top:62px;right:14px;bottom:14px;width:min(600px,calc(100% - 28px));display:flex;flex-direction:column;overflow:hidden}
+.sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:-1px;border:1px solid rgba(0,0,0,.12)}
+
+/* scheda modulo */
+#detail{padding:20px 20px 18px}
+#detail h2{margin:0 36px 12px 0;font-size:22px;font-weight:600;letter-spacing:-.025em;color:var(--navy);display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:0;font-size:13.5px;padding:12px 14px;background:var(--mist);border-radius:12px}
+dt{color:var(--muted)} dd{margin:0;font-variant-numeric:tabular-nums;color:var(--ink)}
+.mono{font-family:var(--mono);font-size:.95em;letter-spacing:.01em}
+.pill{display:inline-flex;align-items:center;height:22px;font-size:11.5px;font-weight:600;border-radius:999px;padding:0 9px;letter-spacing:.005em}
+.pill.todo{background:#ece9f5;color:#4b4570} .pill.okp{background:#e3ecff;color:#1f4fd1} .pill.done{background:#dcf6e9;color:#12804e} .pill.dub{background:#fff1dc;color:#9a5b00}
+.note-box{margin-top:12px;font-size:12.5px;line-height:1.5;color:#5b4a1f;background:#fff8ea;border:1px solid #f6e2b6;border-radius:10px;padding:9px 12px}
+.hint{color:var(--muted);font-size:12px;margin:6px 0 0;line-height:1.5}
+.frm{display:grid;grid-template-columns:150px 1fr;gap:9px 12px;align-items:center;margin-top:16px;padding-top:16px;border-top:1px solid var(--hair)}
+.frm label{font-size:12.5px;color:var(--muted)}
+.frm input,.frm select,.frm textarea{width:100%;min-width:0;height:36px;font:14px var(--font);padding:0 11px;border:1px solid var(--hair);border-radius:9px;background:#fff;color:var(--ink);transition:border-color .15s,box-shadow .15s}
+.frm textarea{height:auto;padding:8px 11px;resize:vertical}
+.frm input:focus,.frm select:focus,.frm textarea:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(23,179,232,.18)}
+.frm input.mono{font-family:var(--mono)}
+.frm .hint{grid-column:1/-1;margin:-2px 0 2px}
+.frm-actions{grid-column:1/-1;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.frm-actions .btn.primary{height:38px;padding:0 18px}
+
+/* elenco e filtri */
+.filters{padding:18px 18px 14px;display:grid;gap:12px;border-bottom:1px solid var(--hair)}
+.fhead{display:flex;align-items:center;gap:10px;padding-right:30px}
+.fhead h2{flex:1}
+.fhead .btn{height:30px;font-size:12.5px;padding:0 11px}
+.fhead .btn:disabled{opacity:.4;cursor:default}
+.filters h2{margin:0;font-size:17px;font-weight:600;letter-spacing:-.02em;color:var(--navy)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding-right:30px}
+.chip{display:inline-flex;align-items:center;height:28px;padding:0 11px;font:500 12px var(--font);color:var(--ink);background:#fff;border:1px solid var(--hair);border-radius:999px;cursor:pointer}
+.chip .sw{margin-right:7px}
+.chip[aria-pressed="false"]{color:#a19db8;background:var(--mist);border-style:dashed}
+.chip[aria-pressed="false"] .sw{opacity:.3}
+.row2{display:flex;gap:8px}
+.row2 input,.row2 select{flex:1;min-width:0;height:36px;font:14px var(--font);padding:0 11px;border:1px solid var(--hair);border-radius:9px;background:#fff;color:var(--ink)}
+.listwrap{flex:1;overflow:auto;min-height:0}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:9px 10px;text-align:left;white-space:nowrap}
+th{position:sticky;top:0;z-index:1;background:#fff;font-size:11.5px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--hair)}
+td{border-bottom:1px solid #f0eef6}
+tbody tr{cursor:pointer;transition:background .12s}
+tbody tr:hover{background:#f6f5fb}
+tbody tr.sel{background:#eaf7fd}
+tbody tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--cyan)}
+.foot{padding:14px 18px;border-top:1px solid var(--hair);display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:rgba(250,249,253,.9)}
+.foot small{color:var(--muted);flex-basis:100%;font-size:12px;line-height:1.5}
+#msg{font-size:12.5px;color:var(--muted)}
+
+/* ---------- schermata di avvio ---------- */
+#splash{position:fixed;inset:0;z-index:50;display:grid;grid-template-rows:auto 1fr auto;padding:28px 40px;color:#fff;overflow:hidden;
+  background:radial-gradient(1100px 620px at 78% 62%,rgba(45,91,227,.30),transparent 65%),radial-gradient(700px 420px at 8% 108%,rgba(23,179,232,.16),transparent 70%),linear-gradient(160deg,#1b0a45,#0f0326 72%)}
+.sp-logo{height:30px;width:auto;position:relative;z-index:1}
+.sp-art{position:absolute;left:50%;top:50%;width:min(78vw,1100px);height:88vh;transform:translate(-50%,-50%);opacity:0;animation:spIn 1.4s .15s ease-out forwards;pointer-events:none}
+.sp-art svg{width:100%;height:100%;display:block}
+@keyframes spIn{from{opacity:0;transform:translate(-50%,-48%)}to{opacity:.3;transform:translate(-50%,-50%)}}
+.sp-in{position:relative;z-index:1;align-self:center;justify-self:center;text-align:center;display:flex;flex-direction:column;align-items:center}
+.sp-title .sp-i{text-transform:none;font-family:"Jost","Inter",sans-serif;font-weight:300;font-size:1.18em;line-height:0;letter-spacing:.06em;color:var(--cyan)}
+.sp-title{margin:0;font-family:"Syncopate","Inter",sans-serif;font-weight:400;font-size:clamp(22px,6.2vw,84px);line-height:1;letter-spacing:.12em;white-space:nowrap;text-transform:uppercase;color:#fff;text-shadow:0 2px 30px rgba(10,2,30,.6)}
+.sp-in::before{content:'';position:absolute;inset:-90px -140px;z-index:-1;background:radial-gradient(closest-side,rgba(18,5,48,.85),transparent);pointer-events:none}
+.sp-in p{margin:30px 0 40px;font-family:"Syncopate","Inter",sans-serif;font-weight:400;font-size:clamp(9.5px,.95vw,13px);letter-spacing:.22em;text-transform:uppercase;line-height:2.2;color:#d9d3f3}
+.sp-go{display:inline-flex;align-items:center;gap:14px;height:52px;padding:0 28px 0 32px;font:700 14px "Syncopate","Inter",sans-serif;letter-spacing:.24em;text-transform:uppercase;color:var(--navy);background:#fff;border:0;border-radius:999px;cursor:pointer;box-shadow:0 12px 34px rgba(0,0,0,.35);transition:transform .15s,box-shadow .15s}
+.sp-go:hover{transform:translateY(-1px);box-shadow:0 16px 40px rgba(0,0,0,.45)}
+.sp-go svg{width:18px;height:18px}
+.sp-go:focus-visible{outline:2px solid var(--cyan);outline-offset:4px}
+.sp-n{margin-left:4px;font-weight:500;color:var(--muted)}
+.sp-foot{position:relative;z-index:1;display:flex;justify-content:space-between;gap:16px;font-size:12px;color:rgba(232,229,247,.5)}
+.brandlink{border:0;padding:0;background:none;cursor:pointer;display:block}
+@media (max-width:820px){
+  .topbar{left:auto;right:10px;max-width:calc(100% - 20px)}
+  .topbar .btn .tx{display:none}
+  .topbar .btn{padding:0 10px}
+  #splash{padding:22px 22px}
+  .sp-art{width:130vw;animation:none;opacity:.22}
+
+  header{flex-wrap:wrap;gap:10px}
+  .kpis{margin-left:0;width:100%;overflow-x:auto}
+  .kpi{min-width:84px}
+  h1 small{display:none}
+  .hero h2{font-size:30px}
+  .frm{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.sp-art{animation:none;opacity:.3}}
+
+</style>
+</head>
+<body>
+<header>
+  <button class="brandlink" id="b-start" title="Schermata iniziale"><img class="brand" alt="Reflow Maintenance Service" src="data:image/png;base64,__LOGO_W__"></button>
+  <span class="hsep" aria-hidden="true"></span>
+  <button class="back" id="b-home" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3L5 8l5 5"/></svg>Impianti</button>
+  <h1 id="htitle"><span class="kick" id="hkick">REFLOW iMAPS</span><span id="hname">Mappe interattive degli impianti</span>
+    <small id="hsub">Impianti fotovoltaici in O&amp;M · elenco per cliente</small></h1>
+  <select class="camp" id="camp" aria-label="Attività sulla mappa" hidden></select>
+  <div class="kpis" id="kpis" aria-label="Filtra la mappa per stato" hidden>
+    <button class="kpi" data-f="" aria-pressed="true"><b id="k-tot">0</b><span>moduli in lista</span></button>
+    <button class="kpi ok" data-f="done" aria-pressed="false"><b id="k-done">0</b><span>sostituiti</span></button>
+    <button class="kpi" data-f="todo" aria-pressed="false"><b id="k-todo">0</b><span>ancora da fare</span></button>
+    <button class="kpi warn" data-f="dub" aria-pressed="false"><b id="k-dub">0</b><span>registro da correggere</span></button>
+  </div>
+</header>
+
+<section id="splash" hidden>
+  <img class="sp-logo" alt="Reflow Maintenance Service" src="data:image/png;base64,__LOGO_W__">
+  <div class="sp-art" id="sp-art" aria-hidden="true"></div>
+  <div class="sp-in">
+    <h2 class="sp-title" aria-label="REFLOW iMAPS">REFLOW <span class="sp-i">i</span>MAPS</h2>
+    <p>Planimetrie interattive – Impianti O&amp;M:<br>Sostituzioni, storico, estrazioni dati</p>
+    <button class="sp-go" id="b-enter" aria-label="Apri gli impianti">Impianti<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
+  </div>
+  <div class="sp-foot"><span>Reflow S.r.l., gruppo ESPE</span><span id="sp-count"></span></div>
+</section>
+
+<section id="home" hidden>
+  <div class="hero"><div class="hero-in hero-row">
+    <div><h2>Impianti</h2>
+      <p id="home-sub">Scegli l'impianto da aprire. Sono raggruppati per cliente.</p></div>
+    <div class="hero-tools">
+    <label class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.6"/><path d="M10.5 10.5L14 14"/></svg><input type="search" id="hq" placeholder="Cerca cliente o impianto" aria-label="Cerca cliente o impianto"></label>
+    <button class="btn primary" type="button" id="b-addimp" hidden>+ Aggiungi impianto</button></div>
+  </div></div>
+  <div class="home-in" id="clienti"></div>
+</section>
+
+<div class="modal" id="addpop" hidden role="dialog" aria-modal="true" aria-labelledby="add-h">
+  <section class="sheet">
+    <button class="x" type="button" data-closemodal="addpop" aria-label="Chiudi">×</button>
+    <h2 id="add-h">Aggiungi impianto</h2>
+    <p class="hint">Carica i documenti dell'impianto: compare subito nell'elenco come "In preparazione". Poi chiedi a Claude in chat di elaborarlo: ricava la planimetria, ti mostra i dubbi e la pubblica.</p>
+    <form id="addfrm">
+      <h3>Impianto</h3>
+      <div class="grid2">
+        <label class="f"><span>Cliente <span class="req">*</span></span><input id="a-cli" list="dl-clienti" required autocomplete="off" placeholder="es. Nome cliente"></label>
+        <label class="f"><span>Nome impianto <span class="req">*</span></span><input id="a-imp" required autocomplete="off" placeholder="es. SPV 1 · Località"></label>
+        <label class="f"><span>Codice impianto</span><input id="a-cod" autocomplete="off" placeholder="es. ABC_01"></label>
+        <label class="f"><span>Località</span><input id="a-loc" autocomplete="off" placeholder="es. Comune (PR)"></label>
+        <label class="f"><span>Potenza (kWp)</span><input id="a-kwp" inputmode="decimal" autocomplete="off"></label>
+      </div>
+      <datalist id="dl-clienti"></datalist>
+      <h3>Modulo installato <span class="hint" style="font-weight:400">(se non lo sai lascia vuoto: lo ricavo da registro o SUF)</span></h3>
+      <div class="grid3">
+        <label class="f"><span>Marca</span><input id="a-mar" autocomplete="off"></label>
+        <label class="f"><span>Modello</span><input id="a-mod" autocomplete="off"></label>
+        <label class="f"><span>Potenza (W)</span><input id="a-w" inputmode="numeric" autocomplete="off"></label>
+      </div>
+      <h3>Documenti</h3>
+      <div class="grid2">
+        <label class="f"><span>Layout as built (PDF vettoriale) <span class="req">*</span></span><input id="a-lay" type="file" accept="application/pdf,.pdf" required></label>
+        <label class="f"><span>SUF (PDF, anche più file)</span><input id="a-suf" type="file" accept="application/pdf,.pdf" multiple></label>
+        <label class="f"><span>Registro seriali (Excel o CSV)</span><input id="a-reg" type="file" accept=".xlsx,.xls,.csv"></label>
+        <label class="f"><span>Elenco moduli da sostituire e altri documenti (PDF, foto, CSV)</span><input id="a-alt" type="file" accept="application/pdf,.pdf,image/*,.csv,.txt" multiple></label>
+      </div>
+      <label class="f" style="margin-top:10px"><span>Note per Claude</span><textarea id="a-note" rows="2" placeholder="es. file 1-31 a ovest, il registro ha due fogli, attività da caricare…"></textarea></label>
+      <p class="hint">Excel non si può caricare così com'è: ogni foglio viene convertito in CSV prima del caricamento, senza perdere dati. Limite 20 MB per file. I file DWG non sono accettati: esporta il layout in PDF da AutoCAD.</p>
+      <div class="acts"><button class="btn primary" type="submit" id="a-go">Carica e aggiungi</button><span class="hint" id="a-msg" role="status"></span></div>
+    </form>
+  </section>
+</div>
+
+<div id="toast" class="msgmap toast" role="status" hidden></div>
+<div class="modal" id="rqpop" hidden role="dialog" aria-modal="true" aria-labelledby="rq-h">
+  <section class="sheet"><button class="x" type="button" data-closemodal="rqpop" aria-label="Chiudi">×</button><div id="rqbody"></div></section>
+</div>
+
+<main id="mapview" hidden>
+  <div id="mapwrap">
+    <svg id="map" aria-label="Mappa impianto"><g id="vp"></g></svg>
+    <div class="tools glass-d">
+      <button id="zin" aria-label="Ingrandisci" title="Ingrandisci"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg></button>
+      <button id="zout" aria-label="Riduci" title="Riduci"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 8h10"/></svg></button>
+      <button id="zfit" aria-label="Vista intera" title="Vista intera"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></svg></button>
+    </div>
+    <div class="topbar glass-d">
+      <button class="btn" id="b-leg" aria-expanded="false" aria-controls="legend" title="Legenda"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M8 2L1.8 5.3 8 8.6l6.2-3.3z"/><path d="M1.8 8.2L8 11.5l6.2-3.3M1.8 11L8 14.3l6.2-3.3"/></svg><span class="tx">Legenda</span></button>
+      <button class="btn" id="b-list" aria-expanded="false" aria-controls="listpop" title="Elenco e filtri"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8"/><circle cx="2.6" cy="4" r=".6" fill="currentColor"/><circle cx="2.6" cy="8" r=".6" fill="currentColor"/><circle cx="2.6" cy="12" r=".6" fill="currentColor"/></svg><span class="tx">Elenco e filtri</span></button>
+      <button class="btn" id="b-multi" aria-pressed="false" title="Seleziona più moduli e aggiorna lo stato di tutti insieme"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="1.8" width="5" height="5" rx="1"/><rect x="9.2" y="1.8" width="5" height="5" rx="1"/><rect x="1.8" y="9.2" width="5" height="5" rx="1"/><path d="M10 11.6l1.4 1.4 2.6-2.8" stroke-linecap="round"/></svg><span class="tx">Selezione multipla</span></button>
+      <button class="btn" id="b-undo" disabled title="Nessuna modifica nell'ultimo minuto da annullare"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 3.5L2.5 6.5l3 3"/><path d="M2.5 6.5h7a4 4 0 0 1 0 8H7"/></svg><span class="tx">Ripristina modifiche</span></button>
+      <span class="sep" aria-hidden="true"></span>
+      <button class="btn pdf" id="b-pdf" title="PDF con planimetria e scheda da compilare in campo, secondo i filtri attivi"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 1.8H4.2a1 1 0 0 0-1 1v10.4a1 1 0 0 0 1 1h7.6a1 1 0 0 0 1-1V5.1z"/><path d="M9.5 1.8v3.3h3.3M8 7.5v4.2M6.2 10l1.8 1.8L9.8 10"/></svg><span class="tx">Estrai layout</span></button>
+    </div>
+    <div class="pop legend glass-d" id="legend" hidden></div>
+    <section class="pop scheda sheet" id="schedapop" hidden aria-label="Scheda modulo">
+      <button class="x" data-close="schedapop" aria-label="Chiudi scheda">×</button>
+      <div id="detail"></div>
+    </section>
+    <section class="pop bulk sheet" id="bulkpop" hidden aria-label="Selezione multipla">
+      <button class="x" id="bulk-x" aria-label="Chiudi selezione multipla">×</button>
+      <h2>Selezione multipla</h2>
+      <p class="hint">Tocca i moduli sulla mappa per aggiungerli o toglierli. Con "Seleziona area" trascini un rettangolo; da computer puoi anche tenere premuto Maiusc mentre trascini.</p>
+      <div class="cnt"><b id="bn">0</b><span>moduli selezionati</span>
+        <button class="btn" type="button" id="b-area" aria-pressed="false">Seleziona area</button>
+        <button class="btn" type="button" id="b-clear">Svuota</button></div>
+      <p class="where" id="bwhere"></p>
+      <form id="bfrm" class="frm">
+        <label for="b-ril">Rilevazione</label>
+        <select id="b-ril"></select>
+        <label for="b-stato">Stato</label>
+        <select id="b-stato">
+          <option value="da_sostituire">Da sostituire</option>
+          <option value="sostituito">Sostituito</option>
+          <option value="ok">Verificato, non da sostituire</option>
+          <option value="">Togli dalla rilevazione</option>
+        </select>
+        <label for="b-causa">Danno</label>
+        <input id="b-causa" autocomplete="off" placeholder="es. vetro rotto, hot spot">
+        <label for="b-data">Data sostituzione</label>
+        <input id="b-data" type="date">
+        <label for="b-note">Note</label>
+        <textarea id="b-note" rows="2"></textarea>
+        <p class="hint">I campi lasciati vuoti non cambiano quello che è già scritto nelle schede.</p>
+        <div class="frm-actions"><button class="btn primary" type="submit" id="b-apply" disabled>Applica</button><span id="b-msg" role="status" class="hint"></span></div>
+      </form>
+    </section>
+    <section class="pop rilpop sheet" id="rilpop" hidden aria-label="Nuova rilevazione">
+      <button class="x" data-close="rilpop" aria-label="Chiudi">×</button>
+      <h2>Nuova rilevazione</h2>
+      <p class="hint">Una rilevazione raccoglie i moduli segnalati in un sopralluogo. Si aggiunge alla legenda con un suo colore, insieme alle altre; dopo averla creata selezioni i moduli sulla mappa.</p>
+      <form id="rfrm" class="frm">
+        <label for="r-tit">Titolo</label>
+        <input id="r-tit" autocomplete="off" required placeholder="es. Sopralluogo novembre 2026">
+        <label for="r-data">Data</label>
+        <input id="r-data" type="date" required>
+        <label>Colore</label>
+        <div id="r-cwrap"></div>
+        <label for="r-note">Note</label>
+        <textarea id="r-note" rows="2" placeholder="Chi ha fatto il sopralluogo, cosa è stato controllato"></textarea>
+        <div class="frm-actions"><button class="btn primary" type="submit">Crea rilevazione</button><span id="r-msg" role="status" class="hint"></span></div>
+      </form>
+    </section>
+    <section class="pop listpop sheet" id="listpop" hidden aria-label="Elenco e filtri">
+      <button class="x" data-close="listpop" aria-label="Chiudi elenco">×</button>
+      <div class="filters">
+        <div class="fhead"><h2>Moduli in lista</h2><button class="btn" type="button" id="b-reset" disabled><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9"/><path d="M2.5 2.5v3h3"/></svg>Resetta filtri</button></div>
+        <div class="chips" id="chips"></div>
+        <div class="row2">
+          <input type="search" id="q" placeholder="Cerca seriale, tavolo, fila…" aria-label="Cerca">
+          <select id="stato" aria-label="Stato">
+            <option value="">Tutti gli stati</option>
+            <option value="todo">Da sostituire</option>
+            <option value="done">Sostituiti</option>
+            <option value="dub">Corretti in campo</option>
+          </select>
+        </div>
+      </div>
+      <div class="listwrap">
+        <table>
+          <thead><tr><th>N°</th><th>Fila</th><th>Tav.</th><th>Col.</th><th>Pos.</th><th>Seriale vecchio</th><th>Seriale nuovo</th><th>Stato</th></tr></thead>
+          <tbody id="tb"></tbody>
+        </table>
+      </div>
+      <div class="foot">
+        <button class="btn primary" id="b-ser" title="PDF con seriale vecchio e seriale nuovo dei moduli filtrati, per comunicare le sostituzioni all'Ufficio Pratiche"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2.5" width="12" height="11" rx="1.2"/><path d="M2 6.2h12M6.5 6.2v7.3"/></svg>Estrazione seriali</button>
+        <span id="msg" role="status"></span>
+        <small>Estrazione seriali: PDF per i PM con seriale vecchio e nuovo dei moduli filtrati. Per i tecnici in campo usa "Estrai layout" sulla mappa.</small>
+      </div>
+    </section>
+    <img class="mapmark" alt="" aria-hidden="true" src="data:image/png;base64,__LOGO_C__">
+    <img id="logo-c" alt="" hidden src="data:image/png;base64,__LOGO_C__">
+    <div id="tip"></div>
+    <div id="msgmap" class="msgmap" role="status" hidden></div>
+    <div id="movebar" class="movebar sheet" role="dialog" aria-label="Sposta modulo" hidden><span id="mv-txt"></span><button class="btn primary" type="button" id="mv-ok">Sposta</button><button class="btn" type="button" id="mv-no">Annulla</button></div>
+  </div>
+</main>
+
+__MAPPE__
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const NS='http://www.w3.org/2000/svg';
+const STATI={'':'Nessun intervento',da_sostituire:'Da sostituire',sostituito:'Sostituito',ok:'Verificato, non da sostituire'};
+const mw=6.2, mh=12.2, PAD=40;
+// ---------- stato globale ----------
+let CAT=[], CUR=null, CURID=null, CAMP=0, V={}, REG={}, BASE={}, SRC={}, FIELD={}, unsub=null, unsubR=null;
+let CAMPS=[], RIL={}, RILC=[], FONTI={}, HID=[], unsubF=null, delAsk=null, editRil=null, pendingRil=null, multi=false, areaMode=false, SELM=new Set(), lasso=null, applyConfirm=false;
+const camp=()=>CAMPS[CAMP];
+const fid=k=>`${camp().id}__${k}`; // override di una rilevazione da file: impianti/<id>/fonti/<attivita>__<fonte>
+const RCOL=['#0b7285','#d6336c','#66a80f','#495057','#a61e4d','#3bc9db','#9c36b5','#e67700'];
+const PAL=['#e5383b','#f48c06','#f2c100','#8b5cf6','#2f7df6','#14b8a6',...RCOL];
+function cpick(id,cur){cur=hexOf(cur||RCOL[0]).toLowerCase();return `<div class="cpick" role="group" aria-label="Colore">${PAL.map(c=>`<button type="button" class="cs" style="background:${c}" data-cs="${c}" data-for="${id}" aria-label="Colore ${c}" aria-pressed="${c===cur}"></button>`).join('')}<input type="color" id="${id}" value="${cur}" title="Altro colore" aria-label="Altro colore"></div>`;}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-cs]');if(!b)return;const inp=$(b.dataset.for);if(!inp)return;inp.value=b.dataset.cs;b.parentNode.querySelectorAll('[data-cs]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));});
+document.addEventListener('input',e=>{if(e.target.type!=='color')return;e.target.parentNode.querySelectorAll('[data-cs]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.cs===e.target.value.toLowerCase())));});
+const dIt=d=>d?String(d).split('-').reverse().join('/'):'';
+function stopSubs(){if(unsub){unsub();unsub=null;}if(unsubR){unsubR();unsubR=null;}if(unsubF){unsubF();unsubF=null;}}
+let W=0,H=0,minX=0,minY=0, vb={x:0,y:0,w:1,h:1}, sel=null, dirty=false;
+let db=null,user=null,canWrite=null,dbState='loading',assets=null,RICH={},rqAsk=false;
+const names={};
+const svg=$('map'), vp=$('vp');
+// ---------- capacità ----------
+const ready=(async()=>{
+  const timer=setTimeout(()=>{if(dbState==='loading'){dbState='off';refresh();}},10000);
+  try{
+    if(!window.claude){dbState='off';return;}
+    user=await claude.use('user'); if(user){try{canWrite=await user.can('data.write');}catch(e){}}
+    db=await claude.use('db'); dbState=db?'ready':'off';
+    try{assets=await claude.use('assets');}catch(e){assets=null;}
+  }catch(e){dbState='off';}
+  finally{clearTimeout(timer);}
+})();
+function refresh(){if(CURID)render();else drawHome();}
+// ---------- routing ----------
+async function route(){
+  const id=decodeURIComponent(location.hash.slice(1));
+  if(!CAT.length){try{CAT=JSON.parse(document.getElementById('catalogo').textContent);}catch(e){CAT=[];}}
+  if(id&&CAT.find(c=>c.id===id))openMap(id); else if(id==='impianti')showHome(); else showSplash();
+}
+function showSplash(){
+  stopSubs(); setMulti(false); CURID=null; CUR=null;
+  $('splash').hidden=false; $('home').hidden=true; $('mapview').hidden=true; document.querySelector('header').hidden=true;
+  document.title='REFLOW iMAPS';
+  const n=CAT.length, nc=new Set(CAT.map(c=>c.cliente)).size;
+  $('sp-count').textContent=n?`${n} ${n===1?'impianto':'impianti'} di ${nc} ${nc===1?'cliente':'clienti'}`:'';
+  if(!$('sp-art').innerHTML&&CAT[0])$('sp-art').innerHTML=lineArt(CAT[0].id);
+}
+function lineArt(id){
+  let d;try{d=JSON.parse(document.querySelector(`script[data-dati="${id}"]`).textContent);}catch(e){return '';}
+  const vv=d.vele;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;vv.forEach(v=>{x0=Math.min(x0,v[4]);x1=Math.max(x1,v[5]);y0=Math.min(y0,v[6]);y1=Math.max(y1,v[7]);});
+  const p=30,X=x=>(x-x0+p).toFixed(1),Y=y=>(y-y0+p).toFixed(1),vt={};vv.forEach(v=>vt[v[0]]=v);
+  let s=`<svg viewBox="0 0 ${(x1-x0+2*p).toFixed(0)} ${(y1-y0+2*p).toFixed(0)}" preserveAspectRatio="xMidYMid meet">`;
+  s+=vv.map(v=>`<rect x="${X(v[4]-4)}" y="${Y(v[6]-7)}" width="${(v[5]-v[4]+8).toFixed(1)}" height="${(v[7]-v[6]+14).toFixed(1)}" fill="rgba(255,255,255,.035)" stroke="rgba(206,198,245,.32)" stroke-width="1.2" vector-effect="non-scaling-stroke"/>`).join('');
+  const a=d.attivita[0];
+  s+=a.mods.map(m=>{const v=vt[m.tav];if(!v)return '';const nd=Math.round((v[5]-v[4])/6.5)+1,st=nd>1?(v[5]-v[4])/(nd-1):6.5;
+    return `<circle cx="${X(v[4]+(m.col-1)*st)}" cy="${Y(m.pos==='A'?v[6]:v[7])}" r="9" fill="#17b3e8" opacity=".85"/>`;}).join('');
+  return s+'</svg>';
+}
+$('b-enter').onclick=()=>{location.hash='impianti';};
+$('b-start').onclick=()=>{location.hash='';};
+window.addEventListener('hashchange',route);
+$('b-home').onclick=()=>{location.hash='impianti';};
+// ---------- home ----------
+let homeStats={};
+function showHome(){
+  stopSubs(); setMulti(false); CURID=null; CUR=null;
+  $('splash').hidden=true; document.querySelector('header').hidden=false;
+  $('mapview').hidden=true; $('home').hidden=false; $('b-home').hidden=true; $('kpis').hidden=true; $('camp').hidden=true; $('htitle').hidden=true; document.querySelector('.hsep').hidden=true; document.body.classList.add('is-home');
+  $('hkick').textContent='REFLOW iMAPS'; $('hname').textContent='Planimetrie degli impianti'; $('hsub').textContent='';
+  document.title='REFLOW iMAPS';
+  drawHome(); loadHomeStats();
+}
+const thumbs={};
+function miniMap(id){
+  if(thumbs[id])return thumbs[id];
+  let d;try{d=JSON.parse(document.querySelector(`script[data-dati="${id}"]`).textContent);}catch(e){return '';}
+  const vv=d.vele;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;vv.forEach(v=>{x0=Math.min(x0,v[4]);x1=Math.max(x1,v[5]);y0=Math.min(y0,v[6]);y1=Math.max(y1,v[7]);});
+  const p=40,W2=x1-x0+2*p,H2=y1-y0+2*p,X=x=>(x-x0+p).toFixed(1),Y=y=>(y-y0+p).toFixed(1);
+  const vt={};vv.forEach(v=>vt[v[0]]=v);
+  let s=`<svg viewBox="0 0 ${W2.toFixed(0)} ${H2.toFixed(0)}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">`;
+  s+=vv.map(v=>`<rect x="${X(v[4]-4)}" y="${Y(v[6]-7)}" width="${(v[5]-v[4]+8).toFixed(1)}" height="${(v[7]-v[6]+14).toFixed(1)}" fill="#eceaf4" stroke="#c9c5da" stroke-width="1"/>`).join('');
+  const a=d.attivita[0],F=a.fonti;
+  s+=a.mods.map(m=>{const v=vt[m.tav];if(!v)return '';const nd=Math.round((v[5]-v[4])/6.5)+1,st=nd>1?(v[5]-v[4])/(nd-1):6.5;const c=(F[m.src]||{}).c||'#17b3e8';
+    return `<circle cx="${X(v[4]+(m.col-1)*st)}" cy="${Y(m.pos==='A'?v[6]:v[7])}" r="14" fill="${c}" stroke="#fff" stroke-width="3"/>`;}).join('');
+  return thumbs[id]=s+'</svg>';
+}
+function drawHome(){
+  const q=$('hq').value.trim().toLowerCase();
+  const list=CAT.filter(c=>!q||(c.cliente+' '+c.impianto+' '+(c.localita||'')).toLowerCase().includes(q));
+  const by={}; list.forEach(c=>(by[c.cliente]=by[c.cliente]||[]).push(c));
+  const rq=Object.entries(RICH).filter(([,r])=>r.stato!=='pubblicato'&&(!q||(r.cliente+' '+r.impianto+' '+(r.localita||'')).toLowerCase().includes(q)));
+  rq.forEach(([id,r])=>{(by[r.cliente]=by[r.cliente]||[]).push({rq:id,...r});});
+  $('b-addimp').hidden=!(db&&assets&&canWrite!==false);
+  $('dl-clienti').innerHTML=[...new Set([...CAT.map(c=>c.cliente),...Object.values(RICH).map(r=>r.cliente)])].sort().map(c=>`<option value="${esc(c)}">`).join('');
+  const el=$('clienti');
+  if(!CAT.length&&!rq.length){el.innerHTML='<p class="empty">Nessuna mappa pubblicata. Usa "Aggiungi impianto" o chiedi a Claude di aggiungere il primo impianto.</p>';return;}
+  if(!list.length&&!rq.length){el.innerHTML='<p class="empty">Nessun cliente o impianto corrisponde alla ricerca.</p>';return;}
+  el.innerHTML=Object.keys(by).sort((a,b)=>a.localeCompare(b,'it')).map(cl=>{
+    const imps=by[cl].sort((a,b)=>(!!a.rq-!!b.rq)||a.impianto.localeCompare(b.impianto,'it'));
+    const np=imps.filter(x=>!x.rq).length, nq=imps.length-np;
+    return `<section class="cliente"><div class="cliente-h"><h3>${esc(cl)}</h3><span>${np} ${np===1?'impianto':'impianti'}${nq?` · ${nq} in preparazione`:''}</span></div>
+      <div class="cards">${imps.map(c=>{if(c.rq)return `<button class="card prep" data-rq="${esc(c.rq)}"><span class="thumb"><span class="badge-prep">In preparazione</span></span><span class="card-b">
+          <span class="nm">${esc(c.impianto)}</span><span class="loc">${esc(c.localita||'')}${c.potenza_kwp?', '+esc(c.potenza_kwp)+' kWp':''}</span>
+          <span class="cp">${(c.files||[]).length} documenti caricati${c.codice?' · '+esc(c.codice):''}</span>
+          <span class="stat"><span>Da elaborare con Claude</span><span>caricato il ${esc(new Date(c.at).toLocaleDateString('it-IT'))}</span></span></span></button>`;
+        const st=homeStats[c.id];const tot=c.moduli_in_lista||0;const done=st?st.done:null;
+        const pct=tot&&done!==null?Math.round(done/tot*100):0;
+        return `<button class="card" data-id="${esc(c.id)}"><span class="thumb">${miniMap(c.id)}</span><span class="card-b">
+          <span class="nm">${esc(c.impianto)}</span>
+          <span class="loc">${esc(c.localita||'')}${c.potenza?', '+esc(c.potenza):''}</span>
+          <span class="cp">${esc(c.attivita||'')}</span>
+          <span class="bar" aria-hidden="true"><i style="width:${pct}%"></i></span>
+          <span class="stat"><span><b>${done===null?'–':done}</b> sostituiti su ${tot}</span><span>dati al ${esc(c.data_dati||'')}</span></span></span></button>`;}).join('')}</div></section>`;}).join('');
+  el.querySelectorAll('.card').forEach(b=>b.onclick=()=>{if(b.dataset.rq)openRq(b.dataset.rq);else location.hash=b.dataset.id;});
+}
+$('hq').addEventListener('input',drawHome);
+async function loadHomeStats(){
+  await ready; if(!db)return;
+  db.collection('richieste').onSnapshot(snap=>{RICH={};snap.docs.forEach(x=>{if(x.exists)RICH[x.id]=x.data();});if(!CURID)drawHome();},()=>{});
+  for(const c of CAT){try{const s=await db.collection(`impianti/${c.id}/moduli`).get();
+    homeStats[c.id]={done:s.docs.filter(d=>d.exists&&d.data().stato==='sostituito').length};}catch(e){}}
+  if(!CURID)drawHome();
+}
+// ---------- aggiunta impianto da app: caricamento documenti, elaborazione a cura di Claude ----------
+function openModal(id){$(id).hidden=false;const f=$(id).querySelector('input,button.x');if(f)f.focus();}
+function closeModal(id){$(id).hidden=true;}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-closemodal]');if(b)closeModal(b.dataset.closemodal);const m=e.target.classList&&e.target.classList.contains('modal')?e.target:null;if(m)closeModal(m.id);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')['addpop','rqpop'].forEach(id=>{if(!$(id).hidden)closeModal(id);});});
+$('b-addimp').onclick=()=>{$('addfrm').reset();$('a-msg').textContent='';$('a-go').disabled=false;openModal('addpop');$('a-cli').focus();};
+const OKT=/\.(pdf|csv|txt|png|jpe?g|webp|gif|heic)$/i;
+async function upFile(file,tipo,out){
+  if(file.size>20*1024*1024)throw new Error(`${file.name} supera 20 MB`);
+  if(/\.xlsx?$/i.test(file.name)){
+    if(!window.XLSX)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+    const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});
+    for(const sh of wb.SheetNames){
+      const csv=XLSX.utils.sheet_to_csv(wb.Sheets[sh],{FS:';',blankrows:false});
+      const nome=`${file.name.replace(/\.xlsx?$/i,'')}__${sh}.csv`;
+      const r=await assets.upload(new File([csv],nome,{type:'text/csv'}));
+      out.push({tipo,nome,id:r.id,url:r.url,size:r.sizeBytes,foglio:sh,origine:file.name});
+    }
+    return;
+  }
+  if(!OKT.test(file.name))throw new Error(`${file.name}: formato non accettato`);
+  const r=await assets.upload(file);
+  out.push({tipo,nome:file.name,id:r.id,url:r.url,size:r.sizeBytes});
+}
+$('addfrm').addEventListener('submit',async ev=>{
+  ev.preventDefault(); if(!db||!assets)return;
+  const msg=$('a-msg'), go=$('a-go');
+  const jobs=[];
+  [...$('a-lay').files].forEach(f=>jobs.push([f,'layout']));
+  [...$('a-suf').files].forEach(f=>jobs.push([f,'suf']));
+  [...$('a-reg').files].forEach(f=>jobs.push([f,'registro']));
+  [...$('a-alt').files].forEach(f=>jobs.push([f,'altro']));
+  if(!jobs.some(j=>j[1]==='layout')){msg.textContent='Serve il layout as built in PDF.';return;}
+  const bad=jobs.find(([f])=>!OKT.test(f.name)&&!/\.xlsx?$/i.test(f.name));
+  if(bad){msg.textContent=`${bad[0].name}: formato non accettato.`;return;}
+  go.disabled=true; const files=[];
+  try{
+    for(let i=0;i<jobs.length;i++){msg.textContent=`Carico ${i+1} di ${jobs.length}: ${jobs[i][0].name}…`;await upFile(jobs[i][0],jobs[i][1],files);}
+    const rid='q'+Date.now().toString(36), uid=user?await user.id():null;
+    const row={cliente:$('a-cli').value.trim(),impianto:$('a-imp').value.trim(),codice:$('a-cod').value.trim(),localita:$('a-loc').value.trim(),
+      potenza_kwp:$('a-kwp').value.trim(),modulo:{marca:$('a-mar').value.trim(),modello:$('a-mod').value.trim(),potenza_w:$('a-w').value.trim()},
+      note:$('a-note').value.trim(),files,stato:'in_preparazione',by:uid,at:new Date().toISOString()};
+    msg.textContent='Salvo…'; await db.doc(`richieste/${rid}`).set(row); RICH[rid]=row;
+    closeModal('addpop'); drawHome(); alertBox(`Impianto "${row.impianto}" aggiunto come "In preparazione". Ora chiedi a Claude in chat di elaborarlo.`);
+  }catch(e){
+    for(const f of files){try{await assets.delete(f.id);}catch(_){}}
+    msg.textContent=(e&&e.message?e.message+'. ':'')+'Caricamento non riuscito: nessun file è stato tenuto, riprova.'; go.disabled=false;
+  }
+});
+const TIPI={layout:'Layout as built',suf:'SUF',registro:'Registro seriali',altro:'Altro documento'};
+function openRq(id){
+  const r=RICH[id]; if(!r)return; rqAsk=false; drawRq(id); openModal('rqpop');
+}
+function drawRq(id){
+  const r=RICH[id], ro=!(db&&canWrite!==false), m=r.modulo||{};
+  $('rqbody').innerHTML=`<h2 id="rq-h">${esc(r.impianto)}</h2><span class="badge-prep">In preparazione</span>
+    <dl><dt>Cliente</dt><dd>${esc(r.cliente)}</dd>${r.codice?`<dt>Codice</dt><dd>${esc(r.codice)}</dd>`:''}${r.localita?`<dt>Località</dt><dd>${esc(r.localita)}</dd>`:''}
+    ${r.potenza_kwp?`<dt>Potenza</dt><dd>${esc(r.potenza_kwp)} kWp</dd>`:''}<dt>Modulo</dt><dd>${m.marca||m.modello?esc([m.marca,m.modello,m.potenza_w?m.potenza_w+' W':''].filter(Boolean).join(' ')):'da ricavare'}</dd>
+    ${r.note?`<dt>Note</dt><dd>${esc(r.note)}</dd>`:''}<dt>Caricato il</dt><dd>${esc(new Date(r.at).toLocaleString('it-IT'))}</dd></dl>
+    <h3>Documenti</h3><ul class="flist">${(r.files||[]).map(f=>`<li><b>${esc(TIPI[f.tipo]||f.tipo)}</b><a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.nome)}</a></li>`).join('')}</ul>
+    <p class="hint" style="margin-top:14px">Per pubblicare la mappa scrivi a Claude in chat: "elabora l'impianto ${esc(r.impianto)} da REFLOW iMAPS".</p>
+    ${ro?'':`<div class="acts">${rqAsk?`<span>Eliminare la richiesta e i ${(r.files||[]).length} documenti caricati? Non si può annullare.</span><button class="btn danger" type="button" id="rq-delok">Elimina</button><button class="btn" type="button" id="rq-delno">Annulla</button>`:`<button class="btn" type="button" id="rq-del">Elimina richiesta</button>`}<span class="hint" id="rq-msg" role="status"></span></div>`}`;
+  const d=$('rq-del');if(d)d.onclick=()=>{rqAsk=true;drawRq(id);};
+  const n=$('rq-delno');if(n)n.onclick=()=>{rqAsk=false;drawRq(id);};
+  const ok=$('rq-delok');if(ok)ok.onclick=async()=>{
+    $('rq-msg').textContent='Elimino…';
+    try{for(const f of (r.files||[])){try{if(assets)await assets.delete(f.id);}catch(_){}} await db.doc(`richieste/${id}`).delete(); delete RICH[id]; closeModal('rqpop'); drawHome(); alertBox('Richiesta eliminata.');}
+    catch(e){$('rq-msg').textContent='Eliminazione non riuscita, riprova.';}
+  };
+}
+// ---------- apertura mappa ----------
+async function openMap(id){
+  stopSubs(); setMulti(false);
+  const meta=CAT.find(c=>c.id===id);
+  $('splash').hidden=true; document.querySelector('header').hidden=false;
+  $('home').hidden=true; $('mapview').hidden=false; $('b-home').hidden=false; $('kpis').hidden=false; $('htitle').hidden=false; document.querySelector('.hsep').hidden=false; document.body.classList.remove('is-home');
+  $('hkick').textContent=meta.cliente; $('hname').textContent=meta.impianto; $('hsub').textContent='Caricamento…';
+  document.title=meta.impianto+' – REFLOW iMAPS';
+  try{
+    const sd=document.querySelector(`script[data-dati="${id}"]`), sr=document.querySelector(`script[data-seriali="${id}"]`);
+    CUR=JSON.parse(sd.textContent); REG=sr?JSON.parse(sr.textContent):{}; CURID=id;
+  }catch(e){$('hsub').textContent='Impossibile caricare i dati di questa mappa.';return;}
+  $('hsub').textContent=CUR.sottotitolo;
+  RIL={}; FONTI={}; SRC={}; CAMP=0; buildCamps(); fillCamp();
+  sel=null; dirty=false; FIELD={}; $('q').value=''; $('stato').value='';
+  ['schedapop','listpop','legend','rilpop'].forEach(p=>closePop(p,true));
+  buildGeometry(); setCampaign(0); fit();
+  await ready;
+  if(db&&CURID===id){
+    subMods();
+    unsubR=db.collection(`impianti/${id}/rilevazioni`).onSnapshot(snap=>{
+      RIL={}; snap.docs.forEach(x=>{if(x.exists)RIL[x.id]=x.data();});
+      buildSrc();
+      if(pendingRil&&RIL[pendingRil]){const rid=pendingRil;pendingRil=null;setMulti(true);$('b-ril').value=rid;bulkInfo();alertBox('Rilevazione creata e aggiunta alla legenda. Ora tocca sulla mappa i moduli da segnalare.');}
+    },()=>{});
+    unsubF=db.collection(`impianti/${id}/fonti`).onSnapshot(snap=>{FONTI={};snap.docs.forEach(x=>{if(x.exists)FONTI[x.id]=x.data();});buildSrc();},()=>{});
+  }else render();
+}
+function buildCamps(){CAMPS=CUR.attivita.map((a,i)=>({...a,id:a.id||('a'+i),path:`impianti/${CURID}/moduli`}));}
+function fillCamp(){
+  const c=$('camp'); c.innerHTML=CAMPS.map((a,i)=>`<option value="${i}">${esc(a.titolo)}</option>`).join('');
+  c.value=String(CAMP); c.hidden=CAMPS.length<2;
+}
+// fonti dell'attività = rilevazioni da file + rilevazioni create in app (si sommano sulla stessa mappa)
+function buildSrc(){
+  const a=camp(), prev=new Set(Object.keys(SRC));
+  RILC=Object.entries(RIL).filter(([,r])=>(r.attivita||CAMPS[0].id)===a.id)
+    .sort((x,y)=>String(x[1].at||'').localeCompare(String(y[1].at||'')));
+  SRC={}; HID=[];
+  Object.entries(a.fonti).forEach(([k,f])=>{const ov=FONTI[fid(k)];
+    if(ov&&ov.eliminata){HID.push([k,ov.titolo||f.lab]);return;}
+    const c=(ov&&ov.colore)||f.c;
+    // la data scritta nel nome della fonte (es. "Rilevazione 14/05/2026 – Reflow") diventa il campo data
+    const m=/(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(f.lab||'');
+    const dTit=m?f.lab.replace(m[0],'').replace(/\s*[–-]\s*/,' ').replace(/\s+/g,' ').trim():f.lab;
+    const dData=m?`${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`:'';
+    const tit=(ov&&ov.titolo)||dTit, data=ov&&('data' in ov)?ov.data:dData;
+    SRC[k]={...f,c,tit,data,lab:`${tit}${data?' · '+dIt(data):''}`,breve:`${tit}${data?' '+dIt(data).slice(0,5):''}`,note:(ov&&ov.note)||'',file:true,orig:f.lab};});
+  const usati=new Set(RILC.map(([,r])=>r.colore).filter(Boolean));let li=0;
+  RILC.forEach(([rid,r])=>{let c=r.colore;if(!c){while(li<RCOL.length&&usati.has(RCOL[li]))li++;c=RCOL[li%RCOL.length];usati.add(c);li++;}
+    SRC[rid]={tit:r.titolo||'Rilevazione',data:r.data||'',lab:`${r.titolo||'Rilevazione'}${r.data?' · '+dIt(r.data):''}`,breve:r.titolo||'Rilevazione',c,app:true,note:r.note||''};});
+  SRC.X={lab:'Aggiunto in campo (scheda singola)',breve:'Aggiunti in campo',c:'var(--c-X)'};
+  Object.keys(SRC).forEach(k=>{if(!prev.has(k))on.add(k);});
+  [...on].forEach(k=>{if(!SRC[k])on.delete(k);});
+  const br=$('b-ril'), cur=br.value;
+  br.innerHTML='<option value="">Nessuna: aggiorno solo lo stato</option>'+RILC.map(([rid,r])=>`<option value="${rid}">${esc(r.titolo||'Rilevazione')}${r.data?' · '+esc(dIt(r.data)):''}</option>`).join('');
+  br.value=SRC[cur]?cur:'';
+  $('chips').innerHTML=Object.entries(SRC).map(([k,s])=>`<button class="chip" aria-pressed="${on.has(k)}" data-k="${k}"><span class="sw" style="background:${s.c}"></span>${esc(s.breve||s.lab)}</button>`).join('');
+  if(CURID)render();
+}
+function drawLegend(list){
+  const a=camp(), cnt={}; list.forEach(e=>{cnt[e.src]=(cnt[e.src]||0)+1;});
+  const ro=dbState!=='ready'||canWrite===false;
+  const pen='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.8 2.6l2.6 2.6-7.9 7.9-3.2.6.6-3.2z"/></svg>';
+  const trash='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 4.2h11M6.3 4.2V2.6h3.4v1.6M4 4.2l.7 9.2h6.6l.7-9.2"/></svg>';
+  const rows=Object.entries(SRC).filter(([k])=>k!=='X'||cnt.X).map(([k,s])=>{
+    const row=`<div class="lr"><span class="sw" style="background:${s.c}"></span><span class="lt">${esc(s.lab)}: ${cnt[k]||0}</span>${(s.app||s.file)&&!ro?`<button class="del edt" data-edit="${k}" title="Modifica titolo, data e colore" aria-label="Modifica rilevazione ${esc(s.breve)}">${pen}</button><button class="del" data-del="${k}" title="Elimina rilevazione" aria-label="Elimina rilevazione ${esc(s.breve)}">${trash}</button>`:''}</div>`;
+    if(editRil===k){const r=s.app?(RIL[k]||{}):{titolo:s.tit,data:s.data,note:s.note};return row+`<form class="ledit" data-editform="${k}"><label for="e-tit">Titolo</label><input id="e-tit" required value="${esc(r.titolo)}"><label for="e-data">Data</label><input id="e-data" type="date" value="${esc(r.data)}"><label>Colore</label>${cpick('e-col',s.c)}<label for="e-note">Note</label><textarea id="e-note" rows="2">${esc(r.note)}</textarea><div><button class="btn primary" type="submit">Salva</button><button class="btn" type="button" data-editno="1">Annulla</button><span class="hint" id="e-msg" role="status"></span></div></form>`;}
+    if(delAsk!==k)return row;
+    const n=cnt[k]||0, dn=list.filter(e=>e.src===k&&stateOf(e)==='sostituito').length;
+    if(s.file)return row+`<div class="lconf" role="alertdialog"><span>Eliminare la rilevazione <b>${esc(s.breve||s.lab)}</b>? I suoi ${n} moduli spariscono da mappa, contatori, elenco ed estrazioni. Le schede già compilate restano salvate e tornano visibili se la ripristini dal fondo della legenda.</span><div><button class="btn danger" data-delok="${k}">Elimina</button><button class="btn" data-delno="1">Annulla</button></div></div>`;
+    return row+`<div class="lconf" role="alertdialog"><span>Eliminare la rilevazione <b>${esc(s.breve)}</b>${n?` e le schede dei suoi ${n} moduli`:''}?${dn?` ${dn} ${dn===1?'risulta già sostituito':'risultano già sostituiti'}: anche quei dati verranno cancellati.`:''} L'operazione non si può annullare.</span><div><button class="btn danger" data-delok="${k}">Elimina</button><button class="btn" data-delno="1">Annulla</button></div></div>`;
+  }).join('');
+  $('legend').innerHTML=`<div class="lsec" style="margin:0;padding:0;border:0">Rilevazioni di ${esc(a.titolo)}</div>`+rows+
+   (db&&!ro?'<button class="btn lnew" id="b-newril" type="button">+ Nuova rilevazione</button>':'')+
+   (HID.length?`<div class="lsec">Rilevazioni eliminate</div>`+HID.map(([k,t])=>`<div class="lr"><span class="lt" style="color:var(--muted)">${esc(t)}</span>${!ro?`<button class="btn" type="button" data-restore="${k}">Ripristina</button>`:''}</div>`).join(''):'')+
+   `<div class="lsec">Simboli</div>
+    <div class="lr"><span class="sw" style="background:transparent;border:2px solid var(--done)"></span>Sostituito</div>
+    <div class="lr"><span class="sw" style="background:transparent;border:1.5px dashed var(--c-MP)"></span>Posizione corretta in campo, diversa dal registro seriali</div>
+    <div class="note">Clic su qualunque modulo per aprirne la scheda. ${esc(CUR.nota_orientamento||'')}</div>`;
+}
+$('legend').addEventListener('click',async e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.id==='b-newril'){openRil();return;}
+  if(b.dataset.edit){editRil=editRil===b.dataset.edit?null:b.dataset.edit;delAsk=null;render();const t=$('e-tit');if(t)t.focus();return;}
+  if(b.dataset.editno){editRil=null;render();return;}
+  if(b.dataset.del){delAsk=b.dataset.del;editRil=null;render();return;}
+  if(b.dataset.delno){delAsk=null;render();return;}
+  if(b.dataset.delok){const rid=b.dataset.delok;delAsk=null;if(SRC[rid]&&SRC[rid].file)await setFonte(rid,{eliminata:true},'Rilevazione eliminata. Puoi ripristinarla dal fondo della legenda.');else await deleteRil(rid);return;}
+  if(b.dataset.restore){await setFonte(b.dataset.restore,{eliminata:false},'Rilevazione ripristinata.');}
+});
+$('legend').addEventListener('submit',async e=>{
+  const f=e.target.closest('[data-editform]');if(!f)return;e.preventDefault();
+  const rid=f.dataset.editform, titolo=$('e-tit').value.trim(); if(!titolo){$('e-msg').textContent='Il titolo è obbligatorio.';return;}
+  if(SRC[rid]&&SRC[rid].file){editRil=null;await setFonte(rid,{titolo,data:$('e-data').value,note:$('e-note').value.trim(),colore:$('e-col').value},'Rilevazione aggiornata.');return;}
+  const r=RIL[rid]||{}, uid=user?await user.id():null;
+  const body={...r,titolo,data:$('e-data').value,note:$('e-note').value.trim(),colore:$('e-col').value,mod_by:uid,mod_at:new Date().toISOString()};
+  if(!body.attivita)body.attivita=camp().id; if(!body.colore&&SRC[rid])body.colore=SRC[rid].c;
+  $('e-msg').textContent='Salvataggio…';
+  try{await dset(`impianti/${CURID}/rilevazioni/${rid}`,body);RIL[rid]=body;editRil=null;buildSrc();alertBox('Rilevazione aggiornata.');}
+  catch(err){$('e-msg').textContent=err&&err.code==='invalid_argument'?'Non hai il permesso di modificare.':'Salvataggio non riuscito, riprova.';}
+});
+// rilevazioni da file: modifiche ed eliminazione salvate come override, i dati di partenza non si toccano
+async function setFonte(k,campi,ok){
+  const id=fid(k), ov=FONTI[id]||{}, uid=user?await user.id():null, at=new Date().toISOString();
+  const body={...ov,...campi,attivita:camp().id,fonte:k,mod_by:uid,mod_at:at};
+  try{await dset(`impianti/${CURID}/fonti/${id}`,body);FONTI[id]=body;SELM.clear();buildSrc();alertBox(ok);}
+  catch(e){alertBox(e&&e.code==='invalid_argument'?'Non hai il permesso di modificare.':'Operazione non riuscita, riprova.');render();}
+}
+async function deleteRil(rid){
+  const path=camp().path, keys=Object.keys(FIELD).filter(k=>FIELD[k]&&FIELD[k].ril===rid&&!BASE[k]);
+  let ko=0;
+  for(const k of keys){try{await ddel(`${path}/${k}`);delete FIELD[k];}catch(e){ko++;}}
+  if(ko){alertBox(`${ko} schede non eliminate: riprova.`);render();return;}
+  try{await ddel(`impianti/${CURID}/rilevazioni/${rid}`);delete RIL[rid];SELM.clear();buildSrc();alertBox('Rilevazione eliminata.');}
+  catch(e){alertBox(e&&e.code==='invalid_argument'?'Non hai il permesso di eliminare.':'Eliminazione non riuscita, riprova.');}
+}
+function subMods(){
+  if(unsub){unsub();unsub=null;} if(!db||!CURID)return;
+  const path=camp().path; FIELD={}; render();
+  unsub=db.collection(path).onSnapshot(async snap=>{
+    if(!camp()||camp().path!==path)return;
+    const next={};snap.docs.forEach(x=>{if(x.exists)next[x.id]=x.data();});FIELD=next;dbState='ready';await resolveNames();render();
+  },()=>{dbState='off';render();});
+}
+$('camp').onchange=e=>{setCampaign(+e.target.value);subMods();};
+function setCampaign(i){
+  CAMP=i; const a=camp(); SELM.clear(); sel=null; closePop('schedapop',true);
+  BASE={}; a.mods.forEach(m=>{m.key=keyOf(m.tav,m.col,m.pos);BASE[m.key]=m;});
+  SRC={}; on=new Set(); delAsk=null; buildSrc();
+}
+// ---------- geometria ----------
+const step=v=>v.nd>1?(v.x1-v.x0)/(v.nd-1):6.5;
+const cellX=(v,col)=>v.x0+(col-1)*step(v)-minX+PAD;
+const cellY=(v,pos)=>(pos==='A'?v.y0:v.y1)-minY+PAD;
+const keyOf=(t,col,pos)=>`T${t}-C${col}-${pos}`;
+function parseKey(k){const m=/^T(\d+)-C(\d+)-([AB])$/.exec(k);return [+m[1],+m[2],m[3]];}
+const regSer=(t,col,pos)=>(REG[t]&&REG[t][pos==='A'?0:1][col-1])||'';
+function modOf(t,col,pos){const i=(CUR.moduli_eccezioni||{})[keyOf(t,col,pos)];return (CUR.moduli_tipo||[])[i||0]||null;}
+const modTxt=m=>m&&(m.modello||m.marca)?`${m.marca||''} ${m.modello||''}${m.potenza_w?' · '+m.potenza_w+' W':''}`.trim():'';
+function modNuovo(e){const f=e.f||{};if(!(f.modello_nuovo||f.marca_nuova||f.potenza_nuova))return null;return {marca:f.marca_nuova||'',modello:f.modello_nuovo||'',potenza_w:f.potenza_nuova||''};}
+const stessoMod=(a,b)=>!!a&&!!b&&String(a.modello).replace(/\s/g,'').toUpperCase()===String(b.modello).replace(/\s/g,'').toUpperCase()&&String(a.potenza_w)===String(b.potenza_w);
+function el(n,a,p){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||vp).appendChild(e);return e;}
+let gM,gT,hov,selR,ghost,mvDrag=null,moveTap=false,mvPending=null;
+function buildGeometry(){
+  vp.innerHTML=''; V={};
+  CUR.vele.forEach(([t,fila,vela,ncol,x0,x1,y0,y1])=>V[t]={t,fila,vela,ncol,x0,x1,y0,y1,nd:Math.round((x1-x0)/6.5)+1});
+  minX=1e9;minY=1e9;let maxX=-1e9,maxY=-1e9;
+  Object.values(V).forEach(v=>{minX=Math.min(minX,v.x0);maxX=Math.max(maxX,v.x1);minY=Math.min(minY,v.y0);maxY=Math.max(maxY,v.y1);});
+  W=maxX-minX+2*PAD; H=maxY-minY+2*PAD;
+  const gV=el('g',{}); const filaFirst={}; let gridD='';
+  Object.values(V).forEach(v=>{
+    const x=v.x0-minX+PAD-mw/2-1, y=v.y0-minY+PAD-mh/2-1, w=v.x1-v.x0+mw+2, h=v.y1-v.y0+mh+2;
+    el('rect',{x,y,width:w,height:h,class:'vela'},gV);
+    const ym=(v.y0+v.y1)/2-minY+PAD; gridD+=`M${x} ${ym}H${x+w}`;
+    for(let c=1;c<v.ncol;c++){const xx=cellX(v,c)+step(v)/2;gridD+=`M${xx} ${y}V${y+h}`;}
+    if(!filaFirst[v.fila]||v.x0<filaFirst[v.fila].x0)filaFirst[v.fila]=v;
+  });
+  el('path',{d:gridD,class:'grid'},gV);
+  Object.values(filaFirst).forEach(v=>{const t=el('text',{x:v.x0-minX+PAD-mw/2-6,y:(v.y0+v.y1)/2-minY+PAD+3,'text-anchor':'end',class:'flab'});t.textContent='F'+v.fila;});
+  gT=el('g',{}); gM=el('g',{});
+  hov=el('rect',{width:mw+1,height:mh+1,rx:1,class:'hov',visibility:'hidden'});
+  ghost=el('rect',{width:mw,height:mh,rx:.8,class:'ghost',visibility:'hidden'});
+  selR=el('rect',{width:mw+3,height:mh+3,rx:1.5,class:'selbox',visibility:'hidden'});
+}
+// ---------- dati unificati ----------
+let POS={};
+// posizione mostrata di una scheda: le schede da file possono essere state spostate (campo spostato_a)
+function posOf(k){const f=FIELD[k];if(BASE[k]&&f&&f.spostato_a&&/^T\d+-C\d+-[AB]$/.test(f.spostato_a))return parseKey(f.spostato_a);return parseKey(k);}
+function entries(){
+  const out=[]; const a=camp();
+  a.mods.forEach(m=>{if(!SRC[m.src])return;const f=FIELD[m.key]||null;
+    if(f&&f.spostato_a&&f.spostato_a!==m.key){const [t,col,pos]=parseKey(f.spostato_a);const v=V[t];
+      if(v){out.push({...m,fila:v.fila,tav:t,vela:v.vela,col,pos,ser:regSer(t,col,pos),mv:m.key,f});return;}}
+    out.push({...m,f});});
+  Object.entries(FIELD).forEach(([k,f])=>{if(BASE[k]||!f.stato)return;if(!/^T\d+-C\d+-[AB]$/.test(k))return;
+    const [t,col,pos]=parseKey(k);const v=V[t];if(!v)return;
+    out.push({key:k,n:f.n??null,fila:v.fila,tav:t,vela:v.vela,col,pos,ser:regSer(t,col,pos),src:(f.ril&&SRC[f.ril])?f.ril:'X',causa:f.causa||'',note:'',dub:false,mv:f.spostato_da||null,f});});
+  POS={};out.forEach(e=>{POS[keyOf(e.tav,e.col,e.pos)]=e.key;});
+  out.sort((x,y)=>(x.n??1e9)-(y.n??1e9));
+  return out;
+}
+function stateOf(e){const f=e.f;if(f&&f.stato)return f.stato;if(f&&f.nuovo)return 'sostituito';return e.src==='X'?'':'da_sostituire';}
+let on=new Set();
+function match(e){
+  if(!on.has(e.src))return false;
+  const st=$('stato').value, s=stateOf(e);
+  if(st==='dub'&&!e.dub)return false; if(st==='todo'&&s!=='da_sostituire')return false; if(st==='done'&&s!=='sostituito')return false;
+  const q=$('q').value.trim().toLowerCase(); if(!q)return true;
+  const tq=q.replace(/^t(av(olo)?)?\s*/,''), fq=q.replace(/^f(ila)?\s*/,'');
+  if(/^t/.test(q)&&/^\d+$/.test(tq))return String(e.tav)===tq;
+  if(/^f/.test(q)&&/^\d+$/.test(fq))return String(e.fila)===fq;
+  const f=e.f||{};
+  return e.ser.includes(q)||(f.nuovo||'').includes(q)||(f.letto||'').includes(q)||String(e.tav)===q||String(e.n)===q;
+}
+function drawMods(list){
+  gM.innerHTML='';gT.innerHTML='';const ts=new Set();
+  list.forEach(e=>{const v=V[e.tav];if(!v)return;ts.add(e.tav);const st=stateOf(e);
+    el('rect',{x:cellX(v,e.col)-mw/2,y:cellY(v,e.pos)-mh/2,width:mw,height:mh,rx:.8,fill:(SRC[e.src]||SRC.X).c,style:'color:'+(SRC[e.src]||SRC.X).c,
+      class:'mod'+(st==='sostituito'?' done':'')+(st==='ok'?' okk':'')+(e.dub?' dub':'')+(match(e)?'':' dim')},gM);});
+  ts.forEach(t=>{const v=V[t];const tx=el('text',{x:(v.x0+v.x1)/2-minX+PAD,y:v.y0-minY+PAD-mh/2-3,'text-anchor':'middle',class:'tlab'},gT);tx.textContent='T'+t;});
+}
+function render(){
+  if(!CURID)return;
+  const list=entries(); drawMods(list); {const ae=document.activeElement;if(!(editRil&&ae&&ae.closest&&ae.closest('[data-editform]')))drawLegend(list);}
+  const tb=$('tb');tb.innerHTML='';
+  list.forEach(e=>{if(!match(e))return;const f=e.f||{};const st=stateOf(e);
+    const tr=document.createElement('tr');if(sel===e.key)tr.className='sel';
+    tr.innerHTML=`<td><span class="sw" style="background:${SRC[e.src].c}"></span>${e.n??'+'}</td><td>${e.fila}</td><td>${e.tav}</td><td>${e.col}</td><td>${e.pos}${e.dub?' ⚠':''}${e.mv?' <span title="Posizione corretta in app">↔</span>':''}</td><td class="mono">${esc(f.letto||e.ser)}</td><td class="mono">${esc(f.nuovo)||'—'}</td><td>${st==='sostituito'?'<span class="pill done">Fatto</span>':st==='ok'?'<span class="pill okp">OK</span>':''}</td>`;
+    tr.onclick=()=>select(e.key,true);tb.appendChild(tr);});
+  const tot=list.filter(e=>{const s=stateOf(e);return s==='da_sostituire'||s==='sostituito';});
+  const done=tot.filter(e=>stateOf(e)==='sostituito').length;
+  $('k-tot').textContent=tot.length;$('k-done').textContent=done;$('k-todo').textContent=tot.length-done;$('k-dub').textContent=camp().mods.filter(m=>m.dub&&SRC[m.src]).length;
+  document.querySelectorAll('.kpi').forEach(k=>k.setAttribute('aria-pressed',String(k.dataset.f===$('stato').value)));
+  $('b-reset').disabled=!filtriAttivi();
+  if(sel){const [t,col,pos]=posOf(sel);const v=V[t];selR.setAttribute('x',cellX(v,col)-mw/2-1.5);selR.setAttribute('y',cellY(v,pos)-mh/2-1.5);selR.setAttribute('visibility','visible');vp.appendChild(selR);}
+  else selR.setAttribute('visibility','hidden');
+  drawMulti();
+  vp.appendChild(hov);
+  detail();
+}
+// ---------- interazione mappa ----------
+function hit(p){for(const v of Object.values(V)){const x0=v.x0-minX+PAD-mw/2-1,x1=v.x1-minX+PAD+mw/2+1,y0=v.y0-minY+PAD-mh/2-1,y1=v.y1-minY+PAD+mh/2+1;
+  if(p.x>=x0&&p.x<=x1&&p.y>=y0&&p.y<=y1){let col=Math.round((p.x-(v.x0-minX+PAD))/step(v))+1;col=Math.max(1,Math.min(v.ncol,col));
+    const pos=Math.abs(p.y-cellY(v,'A'))<=Math.abs(p.y-cellY(v,'B'))?'A':'B';return {t:v.t,col,pos};}}return null;}
+function tip(e,t){const b=$('mapwrap').getBoundingClientRect();const tp=$('tip');tp.textContent=t;tp.style.display='block';tp.style.left=(e.clientX-b.left+12)+'px';tp.style.top=(e.clientY-b.top+12)+'px';}
+function apply(){svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);}
+function fit(){vb={x:0,y:0,w:W,h:H};apply();}
+function zoom(f,cx,cy){if(cx===undefined){cx=vb.x+vb.w/2;cy=vb.y+vb.h/2;}const nw=Math.min(W*1.5,Math.max(60,vb.w*f));const k=nw/vb.w;vb={x:cx-(cx-vb.x)*k,y:cy-(cy-vb.y)*k,w:nw,h:vb.h*k};apply();}
+function toSvg(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+svg.addEventListener('wheel',e=>{e.preventDefault();const p=toSvg(e);zoom(e.deltaY>0?1.2:1/1.2,p.x,p.y);},{passive:false});
+let drag=null;
+svg.addEventListener('pointerdown',e=>{
+  if(!multi&&sel&&canMove(sel)){const h=hit(toSvg(e));if(h&&POS[keyOf(h.t,h.col,h.pos)]===sel){mvDrag={key:sel,to:null,moved:false};svg.setPointerCapture(e.pointerId);return;}}
+  if(multi&&(areaMode||e.shiftKey)){const p=toSvg(e);lasso={x0:p.x,y0:p.y,x1:p.x,y1:p.y,add:true};svg.setPointerCapture(e.pointerId);return;}
+  drag={x:e.clientX,y:e.clientY,vb:{...vb},moved:false};svg.setPointerCapture(e.pointerId);});
+svg.addEventListener('pointermove',e=>{
+  if(!CURID)return;
+  if(lasso){const p=toSvg(e);lasso.x1=p.x;lasso.y1=p.y;drawLasso();return;}
+  if(mvDrag){const h=hit(toSvg(e));const [t0,c0,p0]=posOf(mvDrag.key);
+    if(h&&!(h.t===t0&&h.col===c0&&h.pos===p0)){mvDrag.moved=true;mvDrag.to=keyOf(h.t,h.col,h.pos);const v=V[h.t];
+      ghost.setAttribute('x',cellX(v,h.col)-mw/2);ghost.setAttribute('y',cellY(v,h.pos)-mh/2);ghost.setAttribute('visibility','visible');vp.appendChild(ghost);
+      tip(e,`Sposta su F${v.fila} · T${h.t} · C${h.col} ${h.pos}`);}
+    else{mvDrag.to=null;ghost.setAttribute('visibility','hidden');}
+    svg.style.cursor='grabbing';return;}
+  if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>4){drag.moved=true;svg.classList.add('drag');}
+    if(drag.moved){const s=vb.w/svg.clientWidth;vb.x=drag.vb.x-dx*s;vb.y=drag.vb.y-dy*s;apply();return;}}
+  const h=hit(toSvg(e));
+  if(h){const v=V[h.t];hov.setAttribute('x',cellX(v,h.col)-mw/2-.5);hov.setAttribute('y',cellY(v,h.pos)-mh/2-.5);hov.setAttribute('visibility','visible');svg.style.cursor='pointer';
+    tip(e,`F${v.fila} · T${h.t} · C${h.col} ${h.pos}`);}
+  else{hov.setAttribute('visibility','hidden');$('tip').style.display='none';svg.style.cursor='';}
+});
+svg.addEventListener('pointerup',e=>{
+  if(lasso){endLasso();return;}
+  if(mvDrag){const m=mvDrag;mvDrag=null;svg.style.cursor='';if(m.to)askMove(m.key,m.to);else ghost.setAttribute('visibility','hidden');return;}
+  const wasDrag=drag&&drag.moved;drag=null;svg.classList.remove('drag');
+  if(wasDrag||!CURID)return;const h=hit(toSvg(e));if(!h)return;const k=keyOf(h.t,h.col,h.pos);
+  if(multi){if(SELM.has(k))SELM.delete(k);else SELM.add(k);applyConfirm=false;drawMulti();bulkInfo();return;}
+  if(moveTap&&sel){moveTap=false;const v=V[h.t];ghost.setAttribute('x',cellX(v,h.col)-mw/2);ghost.setAttribute('y',cellY(v,h.pos)-mh/2);ghost.setAttribute('visibility','visible');vp.appendChild(ghost);askMove(sel,k);return;}
+  select(POS[k]||k,false);});
+svg.addEventListener('pointerleave',()=>{if(hov)hov.setAttribute('visibility','hidden');$('tip').style.display='none';});
+$('zin').onclick=()=>zoom(1/1.5);$('zout').onclick=()=>zoom(1.5);$('zfit').onclick=fit;
+function focusOn(t,col,pos){const v=V[t];const cx=cellX(v,col),cy=cellY(v,pos);const w=Math.min(W,520),h=w*(svg.clientHeight/svg.clientWidth||.6);vb={x:cx-w/2,y:cy-h/2,w,h};apply();}
+function fitTo(list){if(!list.length){fit();return;}let a=1e9,c=1e9,b2=-1e9,d=-1e9;list.forEach(e=>{const v=V[e.tav];const x=cellX(v,e.col),y=cellY(v,e.pos);a=Math.min(a,x);b2=Math.max(b2,x);c=Math.min(c,y);d=Math.max(d,y);});
+  const ar=(svg.clientHeight/svg.clientWidth)||.6;let w=Math.max(b2-a+120,300),h=Math.max(d-c+120,w*ar);w=Math.max(w,h/ar);vb={x:(a+b2)/2-w/2,y:(c+d)/2-h/2,w,h:w*ar};apply();}
+// ---------- pannelli ----------
+function openPop(id){$(id).hidden=false;const b=document.querySelector(`[aria-controls="${id}"]`);if(b)b.setAttribute('aria-expanded','true');}
+function closePop(id,silent){$(id).hidden=true;const b=document.querySelector(`[aria-controls="${id}"]`);if(b)b.setAttribute('aria-expanded','false');if(id==='schedapop'&&!silent){sel=null;dirty=false;render();}}
+function togglePop(id){$(id).hidden?openPop(id):closePop(id);}
+$('b-leg').onclick=()=>{if(!$('listpop').hidden)closePop('listpop');togglePop('legend');};
+$('b-list').onclick=()=>{if(!$('legend').hidden)closePop('legend');togglePop('listpop');};
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closePop(b.dataset.close));
+document.addEventListener('keydown',e=>{if(e.key!=='Escape'||!CURID)return;if(!$('movebar').hidden||moveTap){moveTap=false;closeMove();return;}if(!$('rilpop').hidden){closePop('rilpop');return;}if(multi){setMulti(false);return;}for(const id of ['schedapop','listpop','legend'])if(!$(id).hidden){closePop(id);break;}});
+$('chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;const k=b.dataset.k;if(on.has(k))on.delete(k);else on.add(k);b.setAttribute('aria-pressed',on.has(k));render();});
+$('q').addEventListener('input',render);$('stato').addEventListener('change',render);
+document.querySelectorAll('.kpi').forEach(k=>k.onclick=()=>{const f=k.dataset.f;$('stato').value=($('stato').value===f)?'':f;render();if($('stato').value)fitTo(entries().filter(match));else fit();});
+function filtriAttivi(){return !!($('q').value.trim()||$('stato').value||Object.keys(SRC).some(k=>!on.has(k)));}
+$('b-reset').onclick=()=>{$('q').value='';$('stato').value='';on=new Set(Object.keys(SRC));
+  $('chips').querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed','true'));render();fit();};
+function select(k,zoomTo){sel=k;moveTap=false;openPop('schedapop');const [t,col,pos]=posOf(k);if(zoomTo)focusOn(t,col,pos);dirty=false;render();}
+// ---------- scheda ----------
+function fmtTime(iso){try{return new Date(iso).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return iso;}}
+function detail(){
+  const d=$('detail');
+  if(!sel){d.innerHTML='';return;}
+  if(dirty)return;
+  const [t,col,pos]=posOf(sel);const v=V[t];const b=BASE[sel]&&SRC[BASE[sel].src]?BASE[sel]:null;const f=FIELD[sel]||{};
+  const [ot,oc,op]=parseKey(sel), mvFrom=b&&f.spostato_a&&f.spostato_a!==sel?keyOf(ot,oc,op):(!b&&f.spostato_da?f.spostato_da:null);
+  const rs=regSer(t,col,pos);
+  const e=b?{...b,f:FIELD[sel]||null}:{src:'X',f:FIELD[sel]||null};
+  const st=stateOf(e);
+  const pill=st==='sostituito'?'<span class="pill done">Sostituito</span>':st==='da_sostituire'?'<span class="pill todo">Da sostituire</span>':st==='ok'?'<span class="pill okp">Verificato OK</span>':'';
+  const mvNote=mvFrom?(()=>{const [a1,a2,a3]=parseKey(mvFrom);const va=V[a1];return `<div class="note-box">Posizione corretta in app: sulla carta il modulo era su F${va?va.fila:'?'} · T${a1} · C${a2} ${a3}${b?' (seriale trascritto '+esc(b.ser)+')':''}. Seriale e modulo mostrati sono quelli del registro in questa posizione.</div>`;})():'';
+  const regNote=mvFrom?mvNote:b&&rs&&rs!==b.ser?`<div class="note-box">Il registro seriali in questa posizione riporta ${esc(rs)}. ${esc(b.note)}</div>`:(b&&b.note?`<div class="note-box">${esc(b.note)}</div>`:'');
+  const who=f.by?`<p class="hint">Ultima modifica: ${esc(names[f.by]||'utente')} · ${esc(fmtTime(f.at))}</p>`:'';
+  const mo=modOf(t,col,pos);
+  const ro=dbState!=='ready'||canWrite===false;
+  const why=dbState==='loading'?'Collegamento all\'archivio condiviso in corso…':dbState==='off'?'In questa vista non è possibile salvare: apri la pagina da claude.ai con il tuo account.':canWrite===false?'Hai accesso in sola lettura: per compilare serve il permesso di modifica.':'';
+  d.innerHTML=`<h2>${b?'Modulo N° '+b.n:f.n?'Modulo N° '+f.n:'Modulo'} ${pill} ${b&&b.dub?'<span class="pill dub">Registro da correggere</span>':''}</h2>
+  <dl><dt>Fila / tavolo</dt><dd>${v.fila} / ${t} (vela ${v.vela} della fila)</dd><dt>Colonna / posizione</dt><dd>${col} / ${pos}</dd>
+  ${b?`<dt>Seriale vecchio</dt><dd class="mono">${esc(mvFrom?rs:b.ser)||'non presente nel registro'}</dd><dt>Rilevazione</dt><dd><span class="sw" style="background:${SRC[b.src].c}"></span>${esc(SRC[b.src].tit||SRC[b.src].lab)}</dd>${SRC[b.src].data?`<dt>Data rilevazione</dt><dd>${esc(dIt(SRC[b.src].data))}</dd>`:''}${b.causa?`<dt>Danno</dt><dd>${esc(b.causa)}</dd>`:''}`
+     :`<dt>Seriale da registro</dt><dd class="mono">${esc(rs)||'non presente nel registro'}</dd>${f.ril&&SRC[f.ril]?`<dt>Rilevazione</dt><dd><span class="sw" style="background:${SRC[f.ril].c}"></span>${esc(SRC[f.ril].tit)}</dd>${SRC[f.ril].data?`<dt>Data rilevazione</dt><dd>${esc(dIt(SRC[f.ril].data))}</dd>`:''}`:''}`}
+  <dt>Modulo installato</dt><dd>${esc(modTxt(mo))||'non indicato'}</dd></dl>
+  ${regNote}
+  <form id="frm" class="frm">
+    <label for="f-stato">Stato</label>
+    <select id="f-stato">${Object.entries(STATI).map(([k,l])=>`<option value="${k}" ${k===(f.stato??(b?'da_sostituire':''))?'selected':''}>${l}</option>`).join('')}</select>
+    ${b?'':`<label for="f-causa">Danno</label><input id="f-causa" autocomplete="off" value="${esc(f.causa)}">`}
+    <label for="f-letto">Seriale letto sul modulo</label>
+    <input id="f-letto" class="mono" inputmode="numeric" autocomplete="off" placeholder="${esc(b&&!mvFrom?b.ser:rs)}" value="${esc(f.letto)}">
+    <label for="f-nuovo">Seriale nuovo installato</label>
+    <input id="f-nuovo" class="mono" inputmode="numeric" autocomplete="off" value="${esc(f.nuovo)}">
+    <label for="f-marca">Marca modulo nuovo</label>
+    <input id="f-marca" autocomplete="off" value="${esc(f.marca_nuova??(mo?mo.marca:''))}">
+    <label for="f-mod">Modello modulo nuovo</label>
+    <input id="f-mod" autocomplete="off" value="${esc(f.modello_nuovo??(mo?mo.modello:''))}">
+    <label for="f-pot">Potenza nuova (W)</label>
+    <input id="f-pot" inputmode="numeric" autocomplete="off" value="${esc(f.potenza_nuova??(mo?mo.potenza_w:''))}">
+    <p class="hint">Marca, modello e potenza sono già compilati con quelli del modulo originale: cambiali solo se il modulo montato è diverso.</p>
+    <label for="f-data">Data sostituzione</label>
+    <input id="f-data" type="date" value="${esc(f.data)}">
+    <label for="f-note">Note</label>
+    <textarea id="f-note" rows="2">${esc(f.note)}</textarea>
+    <div class="frm-actions"><button class="btn primary" type="submit" ${ro?'disabled':''}>Salva</button>${f.at&&!ro?'<button class="btn" type="button" id="f-del">Svuota scheda</button>':''}<span id="f-msg" role="status" class="hint">${why}</span></div>
+    ${canMove(sel)&&!ro?`<div class="frm-actions"><button class="btn" type="button" id="f-move">Sposta in un'altra posizione</button>${mvFrom?'<button class="btn" type="button" id="f-back">Riporta dove era sulla carta</button>':''}</div><p class="hint">Per correggere un errore di trascrizione puoi anche trascinare il modulo selezionato sulla mappa.</p>`:''}
+    ${who}
+  </form>`;
+  const frm=$('frm');
+  frm.addEventListener('input',()=>{dirty=true;});
+  $('f-nuovo').addEventListener('input',ev=>{if(ev.target.value.trim()&&$('f-stato').value!=='sostituito')$('f-stato').value='sostituito';});
+  frm.addEventListener('submit',async ev=>{ev.preventDefault();await save(sel,{stato:$('f-stato').value,letto:$('f-letto').value.trim(),nuovo:$('f-nuovo').value.trim(),marca_nuova:$('f-marca').value.trim(),modello_nuovo:$('f-mod').value.trim(),potenza_nuova:$('f-pot').value.trim(),data:$('f-data').value,note:$('f-note').value.trim(),...($('f-causa')?{causa:$('f-causa').value.trim()}:{})});});
+  const del=$('f-del');if(del)del.onclick=async()=>{await removeDoc(sel);};
+  const mvb=$('f-move');if(mvb)mvb.onclick=()=>{moveTap=true;alertBox('Tocca sulla mappa la posizione corretta del modulo.');};
+  const bk=$('f-back');if(bk)bk.onclick=()=>askMove(sel,mvFrom);
+}
+const validSer=s=>!s||/^\d{14,18}$/.test(s);
+async function save(k,data){
+  const msg=$('f-msg');
+  if(!validSer(data.letto)||!validSer(data.nuovo)){msg.textContent='Un seriale deve contenere solo cifre (14-18).';return;}
+  if(data.potenza_nuova&&!/^\d{2,4}(\.\d+)?$/.test(data.potenza_nuova)){msg.textContent='La potenza va indicata in W, solo numero (es. 625).';return;}
+  if(data.stato!=='sostituito'&&!data.nuovo){data.marca_nuova='';data.modello_nuovo='';data.potenza_nuova='';}
+  if(!db){msg.textContent='Salvataggio non disponibile in questa vista.';return;}
+  const uid=user?await user.id():null;
+  const body={...(FIELD[k]||{}),...data,by:uid,at:new Date().toISOString()};
+  if(!BASE[k]&&body.ril&&body.stato&&body.n==null)body.n=nextN();
+  msg.textContent='Salvataggio…';
+  try{await dset(`${camp().path}/${k}`,body);dirty=false;FIELD[k]=body;msg.textContent='Salvato.';render();}
+  catch(e){if(e&&e.code==='invalid_argument'){canWrite=false;msg.textContent='Non hai il permesso di salvare.';}
+    else if(e&&e.code==='unavailable'){msg.textContent='Archivio non raggiungibile, riprova tra poco.';}
+    else msg.textContent='Salvataggio non riuscito ('+(e&&e.code||'errore')+').';}
+}
+async function removeDoc(k){try{const f=FIELD[k];
+  if(BASE[k]&&f&&f.spostato_a){const body={spostato_a:f.spostato_a,by:f.by,at:new Date().toISOString()};await dset(`${camp().path}/${k}`,body);FIELD[k]=body;dirty=false;render();return;}
+  await ddel(`${camp().path}/${k}`);delete FIELD[k];dirty=false;render();}catch(e){$('f-msg').textContent='Operazione non riuscita.';}}
+// ---------- registro delle modifiche e "Ripristina modifiche" (ultimo minuto) ----------
+// Ogni scrittura passa da dset/ddel, che annotano com'era il documento prima. Vale per questo dispositivo.
+let JOURNAL=[], undoing=false;
+function cached(path){
+  const pre=`impianti/${CURID}/`; if(!path.startsWith(pre))return null;
+  const seg=path.slice(pre.length).split('/');
+  if(seg[0]==='rilevazioni'&&seg.length===2)return RIL[seg[1]]||null;
+  if(seg[0]==='fonti'&&seg.length===2)return FONTI[seg[1]]||null;
+  if(camp()&&path.startsWith(camp().path+'/'))return FIELD[path.slice(camp().path.length+1)]||null;
+  return null;
+}
+function journal(path){if(undoing)return;const prev=cached(path);JOURNAL.push({path,prev:prev?JSON.parse(JSON.stringify(prev)):null,t:Date.now(),imp:CURID});undoInfo();}
+async function dset(path,body){journal(path);return db.doc(path).set(body);}
+async function ddel(path){journal(path);return db.doc(path).delete();}
+function recent(){const lim=Date.now()-60000;return JOURNAL.filter(j=>j.t>=lim&&j.imp===CURID);}
+function undoInfo(){const b=$('b-undo');if(!b)return;const n=recent().length;b.disabled=!n||undoing;b.title=n?`Annulla le ${n} modifiche salvate nell'ultimo minuto da questo dispositivo`:'Nessuna modifica nell\'ultimo minuto da annullare';}
+setInterval(undoInfo,3000);
+$('b-undo').onclick=async()=>{
+  const list=recent(); if(!list.length||!db)return;
+  undoing=true; undoInfo(); let ok=0, ko=0;
+  for(const j of list.slice().reverse()){
+    try{if(j.prev)await db.doc(j.path).set(j.prev);else await db.doc(j.path).delete();ok++;}catch(e){ko++;}
+  }
+  const tolti=new Set(list); JOURNAL=JOURNAL.filter(j=>!tolti.has(j)); undoing=false;
+  SELM.clear(); sel=null; dirty=false; closePop('schedapop',true); editRil=null; delAsk=null;
+  // le copie locali si riallineano con gli aggiornamenti dell'archivio; intanto le correggo subito
+  list.slice().reverse().forEach(j=>{const pre=`impianti/${CURID}/`;const seg=j.path.slice(pre.length).split('/');
+    const tgt=seg[0]==='rilevazioni'&&seg.length===2?[RIL,seg[1]]:seg[0]==='fonti'&&seg.length===2?[FONTI,seg[1]]:[FIELD,j.path.slice(camp().path.length+1)];
+    if(j.prev)tgt[0][tgt[1]]=j.prev;else delete tgt[0][tgt[1]];});
+  buildSrc(); undoInfo();
+  alertBox(ko?`Annullate ${ok} modifiche, ${ko} non riuscite: riprova.`:`Annullate le modifiche dell'ultimo minuto (${ok}).`);
+};
+// ---------- spostamento modulo (errori di trascrizione) ----------
+function canMove(k){if(!k||dbState!=='ready'||canWrite===false)return false;if(BASE[k])return true;const f=FIELD[k];return !!(f&&f.stato);}
+function askMove(k,to){
+  const [t0,c0,p0]=posOf(k), [t,c,p]=parseKey(to);
+  if(t===t0&&c===c0&&p===p0){ghost.setAttribute('visibility','hidden');return;}
+  const occ=POS[to]; if(occ&&occ!==k){ghost.setAttribute('visibility','hidden');alertBox('In quella posizione c\'è già un modulo segnalato in questa attività: scegli un\'altra posizione.');return;}
+  const v=V[t], v0=V[t0], rs=regSer(t,c,p), b=BASE[k], f=FIELD[k]||{};
+  const nome=b?'il modulo N° '+b.n:f.n?'il modulo N° '+f.n:'il modulo';
+  mvPending={k,to};
+  $('mv-txt').innerHTML=`Spostare ${nome} da <b>T${t0} C${c0} ${p0}</b> a <b>F${v.fila} · T${t} · C${c} ${p}</b>?${rs?' Seriale in registro: <span class="mono">'+esc(rs)+'</span>':' Posizione senza seriale nel registro.'}`;
+  $('movebar').hidden=false;$('mv-ok').focus();
+}
+function closeMove(){mvPending=null;$('movebar').hidden=true;if(ghost)ghost.setAttribute('visibility','hidden');}
+$('mv-no').onclick=closeMove;
+$('mv-ok').onclick=async()=>{
+  if(!mvPending)return; const {k,to}=mvPending; closeMove();
+  const uid=user?await user.id():null, at=new Date().toISOString(), path=camp().path, f=FIELD[k]||{};
+  try{
+    if(BASE[k]){
+      const body={...f,by:uid,at}; if(to===k)delete body.spostato_a; else body.spostato_a=to;
+      delete body.letto;
+      const resto=Object.keys(body).filter(x=>!['by','at'].includes(x));
+      if(!resto.length)await ddel(`${path}/${k}`); else await dset(`${path}/${k}`,body);
+      if(resto.length)FIELD[k]=body; else delete FIELD[k];
+      sel=k;
+    }else{
+      const orig=f.spostato_da||k, body={...f,by:uid,at}; delete body.letto;
+      if(orig===to)delete body.spostato_da; else body.spostato_da=orig;
+      await dset(`${path}/${to}`,body); await ddel(`${path}/${k}`);
+      delete FIELD[k]; FIELD[to]=body; sel=to;
+    }
+    dirty=false; render(); alertBox('Modulo spostato. Seriale e modello ora sono quelli del registro nella nuova posizione.');
+  }catch(e){alertBox(e&&e.code==='invalid_argument'?'Non hai il permesso di modificare.':'Spostamento non riuscito, riprova.');}
+};
+// ---------- selezione multipla ----------
+function nextN(){let m=0;camp().mods.forEach(x=>{if(x.n>m)m=x.n;});Object.values(FIELD).forEach(f=>{if(f&&f.n>m)m=f.n;});return m+1;}
+function setMulti(onoff){
+  multi=onoff; areaMode=false; lasso=null; applyConfirm=false; if(!onoff)SELM.clear();
+  $('b-multi').setAttribute('aria-pressed',String(onoff)); $('bulkpop').hidden=!onoff; $('b-area').setAttribute('aria-pressed','false');
+  if(onoff){closePop('schedapop',true);sel=null;['b-causa','b-data','b-note'].forEach(i=>$(i).value='');$('b-stato').value='da_sostituire';$('b-msg').textContent='';}
+  if(CURID){render();bulkInfo();}
+}
+function drawMulti(){
+  if(!gS){gS=el('g',{});} gS.innerHTML=''; vp.appendChild(gS);
+  SELM.forEach(k=>{const [t,col,pos]=parseKey(k);const v=V[t];if(!v)return;el('rect',{x:cellX(v,col)-mw/2-1,y:cellY(v,pos)-mh/2-1,width:mw+2,height:mh+2,rx:1.2,class:'msel'},gS);});
+  if(lasso){const x=Math.min(lasso.x0,lasso.x1),y=Math.min(lasso.y0,lasso.y1);el('rect',{x,y,width:Math.abs(lasso.x1-lasso.x0),height:Math.abs(lasso.y1-lasso.y0),class:'lasso'},gS);}
+}
+let gS=null;
+function drawLasso(){drawMulti();}
+function endLasso(){
+  const x0=Math.min(lasso.x0,lasso.x1),x1=Math.max(lasso.x0,lasso.x1),y0=Math.min(lasso.y0,lasso.y1),y1=Math.max(lasso.y0,lasso.y1);lasso=null;
+  if(x1-x0>2||y1-y0>2){Object.values(V).forEach(v=>{for(let c=1;c<=v.ncol;c++)for(const p of ['A','B']){const x=cellX(v,c),y=cellY(v,p);if(x>=x0&&x<=x1&&y>=y0&&y<=y1)SELM.add(keyOf(v.t,c,p));}});}
+  applyConfirm=false;drawMulti();bulkInfo();
+}
+function bulkInfo(){
+  if(!multi)return; const n=SELM.size, a=camp();
+  $('bn').textContent=n;
+  const rid=$('b-ril').value, r=rid&&SRC[rid];
+  $('bwhere').innerHTML=r?`I moduli non ancora segnalati entrano nella rilevazione <span class="sw" style="background:${r.c}"></span><b>${esc(r.breve)}</b>. Quelli già segnalati restano nella loro rilevazione e ne aggiorni solo i campi.`
+    :`Aggiorni solo lo stato dei moduli selezionati. Per segnalare moduli di un nuovo sopralluogo scegli una rilevazione o creane una nuova dalla legenda.`;
+  const ro=dbState!=='ready'||canWrite===false, togli=$('b-stato').value==='';
+  const ap=$('b-apply'); ap.disabled=!n||ro;
+  ap.textContent=applyConfirm?`Conferma: togli ${n} ${n===1?'modulo':'moduli'}`:togli?`Togli ${n} ${n===1?'modulo':'moduli'}`:`Applica a ${n} ${n===1?'modulo':'moduli'}`;
+  if(ro)$('b-msg').textContent=dbState==='loading'?'Collegamento all\'archivio condiviso in corso…':canWrite===false?'Hai accesso in sola lettura.':'In questa vista non è possibile salvare.';
+}
+$('b-multi').onclick=()=>setMulti(!multi);
+$('bulk-x').onclick=()=>setMulti(false);
+$('b-area').onclick=()=>{areaMode=!areaMode;$('b-area').setAttribute('aria-pressed',String(areaMode));};
+$('b-clear').onclick=()=>{SELM.clear();applyConfirm=false;drawMulti();bulkInfo();};
+$('b-stato').onchange=()=>{applyConfirm=false;bulkInfo();};
+$('b-ril').onchange=()=>{applyConfirm=false;bulkInfo();};
+$('bfrm').addEventListener('submit',async ev=>{
+  ev.preventDefault(); if(!SELM.size||!db)return;
+  const stato=$('b-stato').value, causa=$('b-causa').value.trim(), data=$('b-data').value, note=$('b-note').value.trim(), msg=$('b-msg');
+  if(stato===''&&!applyConfirm){applyConfirm=true;bulkInfo();msg.textContent='Le schede dei moduli selezionati verranno svuotate e quelli segnalati in app spariranno dalla mappa.';return;}
+  applyConfirm=false;
+  const keys=[...SELM], uid=user?await user.id():null, at=new Date().toISOString(), path=camp().path, rid=$('b-ril').value;
+  let nn=nextN(), ok=0, ko=0; $('b-apply').disabled=true; msg.textContent='Salvataggio…';
+  for(const pk of keys){
+    const k=POS[pk]||pk, ex=FIELD[k];
+    try{
+      if(stato===''){if(ex){await ddel(`${path}/${k}`);delete FIELD[k];}ok++;continue;}
+      const nuovo=!BASE[k]&&!(ex&&ex.stato);
+      const body={...(ex||{}),stato,by:uid,at};
+      if(causa)body.causa=causa; if(data)body.data=data; if(note)body.note=note;
+      if(nuovo&&rid){body.ril=rid;if(body.n==null)body.n=nn++;}
+      await dset(`${path}/${k}`,body); FIELD[k]=body; ok++;
+    }catch(e){ko++;if(e&&e.code==='invalid_argument'){canWrite=false;break;}}
+  }
+  SELM.clear(); render(); bulkInfo();
+  msg.textContent=ko?`Aggiornati ${ok} moduli, ${ko} non salvati: riprova.`:`Aggiornati ${ok} ${ok===1?'modulo':'moduli'}.`;
+});
+// ---------- nuova rilevazione ----------
+function openRil(){
+  if(!db){alertBox('Per creare una rilevazione apri la pagina da claude.ai con il tuo account.');return;}
+  {const usati=new Set(Object.values(SRC).map(x=>hexOf(x.c).toLowerCase()));$('r-cwrap').innerHTML=cpick('r-col',RCOL.find(c=>!usati.has(c))||RCOL[0]);}
+  $('r-tit').value='';$('r-note').value='';$('r-data').value=new Date().toISOString().slice(0,10);$('r-msg').textContent='';
+  openPop('rilpop');$('r-tit').focus();
+}
+$('rfrm').addEventListener('submit',async ev=>{
+  ev.preventDefault(); const titolo=$('r-tit').value.trim(); if(!titolo)return;
+  const rid='r'+Date.now().toString(36), uid=user?await user.id():null;
+  $('r-msg').textContent='Creo la rilevazione…';
+  const colore=$('r-col')?$('r-col').value:RCOL[0];
+  try{pendingRil=rid;await dset(`impianti/${CURID}/rilevazioni/${rid}`,{titolo,data:$('r-data').value,note:$('r-note').value.trim(),attivita:camp().id,colore,by:uid,at:new Date().toISOString()});closePop('rilpop');closePop('legend');}
+  catch(e){pendingRil=null;$('r-msg').textContent=e&&e.code==='invalid_argument'?'Non hai il permesso di creare rilevazioni.':'Creazione non riuscita, riprova.';}
+});
+async function resolveNames(){if(!user)return;const ids=[...new Set(Object.values(FIELD).map(f=>f.by).filter(Boolean))];if(!ids.length)return;
+  const ps=await user.profiles(ids);ids.forEach(id=>names[id]=ps[id].name||'Utente');}
+// ---------- Estrai layout (PDF per il campo) ----------
+const LIBS=['https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js','https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'];
+function loadScript(u){return new Promise((ok,ko)=>{const s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=()=>ko(new Error('script '+u));document.head.appendChild(s);});}
+async function libs(){if(window.jspdf&&window.jspdf.jsPDF&&window.jspdf.jsPDF.API.autoTable)return;for(const u of LIBS){if(!(u.includes('autotable')?(window.jspdf&&window.jspdf.jsPDF.API.autoTable):window.jspdf))await loadScript(u);}}
+function hexOf(c){if(/^#/.test(c))return c;const m=/var\((--[^)]+)\)/.exec(c);return m?getComputedStyle(document.documentElement).getPropertyValue(m[1]).trim()||'#888888':'#888888';}
+function rgb(h){h=hexOf(h).replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+function filtroDescr(){const p=[];const st=$('stato').value;if(st)p.push({todo:'da sostituire',done:'sostituiti',dub:'registro da correggere'}[st]);
+  const off=Object.keys(SRC).filter(k=>!on.has(k));if(off.length)p.push('escluse: '+off.map(k=>SRC[k].breve||SRC[k].lab).join(', '));
+  const q=$('q').value.trim();if(q)p.push('ricerca "'+q+'"');return p.length?p.join(' · '):'tutti i moduli in lista';}
+async function estraiLayout(){
+  const btn=$('b-pdf'), old=btn.innerHTML; btn.disabled=true; btn.textContent='Preparo il PDF…';
+  try{
+    await libs();
+    const list=entries().filter(e=>stateOf(e)&&match(e)).sort((a,b)=>a.fila-b.fila||a.tav-b.tav||a.col-b.col||a.pos.localeCompare(b.pos));
+    if(!list.length){alertBox('Nessun modulo da esportare con i filtri attuali.');return;}
+    const {jsPDF}=window.jspdf; const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    const PW=297, PH=210, M=10, oggi=new Date().toLocaleDateString('it-IT');
+    const att=camp(); const logoW=document.querySelector('img.brand').src, logoC=document.getElementById('logo-c').src;
+    const navy=[24,6,60], cyan=[23,179,232], ink=[36,31,58], muted=[109,106,130];
+    function testata(titolo){
+      doc.setFillColor(...navy);doc.rect(0,0,PW,17,'F');doc.setFillColor(...cyan);doc.rect(0,17,PW,0.8,'F');
+      try{doc.addImage(logoW,'PNG',M,4.2,43,8.4);}catch(e){}
+      doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(12.5);doc.text(titolo,62,8);
+      doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(200,200,220);
+      doc.text(`${CUR.cliente} · ${att.titolo} · estratto il ${oggi} · ${list.length} moduli · filtro: ${filtroDescr()}`,62,13.2,{maxWidth:PW-62-M});
+    }
+    // geometria: coordinate del layout (stesso sistema della mappa)
+    const vs=Object.values(V);
+    const bboxAll={x0:Math.min(...vs.map(v=>v.x0))-4,x1:Math.max(...vs.map(v=>v.x1))+4,y0:Math.min(...vs.map(v=>v.y0))-8,y1:Math.max(...vs.map(v=>v.y1))+8};
+    const pts=list.map(e=>{const v=V[e.tav];const st=step(v);return {e,x:v.x0+(e.col-1)*st,y:e.pos==='A'?v.y0:v.y1};});
+    function disegna(bb,area,dettaglio,zone){
+      const s=Math.min(area.w/(bb.x1-bb.x0),area.h/(bb.y1-bb.y0));
+      const ox=area.x+(area.w-(bb.x1-bb.x0)*s)/2, oy=area.y+(area.h-(bb.y1-bb.y0)*s)/2;
+      const X=x=>ox+(x-bb.x0)*s, Y=y=>oy+(y-bb.y0)*s;
+      const mw2=6.2*s, mh2=12.2*s;
+      doc.saveGraphicsState(); doc.rect(area.x,area.y,area.w,area.h,null); doc.clip(); doc.discardPath();
+      doc.setLineWidth(0.12);
+      const vis=vs.filter(v=>!(v.x1<bb.x0-10||v.x0>bb.x1+10||v.y1<bb.y0-15||v.y0>bb.y1+15));
+      vis.forEach(v=>{doc.setDrawColor(170,165,195);doc.setFillColor(236,234,244);
+        doc.rect(X(v.x0)-mw2/2,Y(v.y0)-mh2/2,(v.x1-v.x0)*s+mw2,(v.y1-v.y0)*s+mh2,'FD');
+        if(dettaglio){doc.setDrawColor(205,200,222);doc.setLineWidth(0.05);const st=step(v);
+          for(let c=1;c<v.ncol;c++){const xx=X(v.x0+(c-0.5)*st);doc.line(xx,Y(v.y0)-mh2/2,xx,Y(v.y1)+mh2/2);}
+          doc.line(X(v.x0)-mw2/2,Y((v.y0+v.y1)/2),X(v.x1)+mw2/2,Y((v.y0+v.y1)/2));doc.setLineWidth(0.12);}
+      });
+      // etichetta di fila accanto alla prima vela visibile di ogni fila
+      const first={};vis.forEach(v=>{if(!first[v.fila]||v.x0<first[v.fila].x0)first[v.fila]=v;});
+      doc.setFont('helvetica','bold');doc.setFontSize(dettaglio?7:4.6);doc.setTextColor(...muted);
+      Object.values(first).forEach(v=>{const y=(v.y0+v.y1)/2;doc.text('F'+v.fila,Math.max(X(v.x0)-mw2/2-0.8,area.x+5),Y(y)+1,{align:'right'});});
+      // etichette dei tavoli coinvolti
+      const ts=[...new Set(list.map(e=>e.tav))];doc.setFont('helvetica','normal');doc.setFontSize(dettaglio?6.5:4);
+      ts.forEach(t=>{const v=V[t];doc.text('T'+t,X((v.x0+v.x1)/2),Y(v.y0)-mh2/2-0.7,{align:'center'});});
+      // moduli, con numeri sfalsati quando sono vicini
+      const liv={};const grp={};pts.forEach(p=>{const k=p.e.tav+p.e.pos;(grp[k]=grp[k]||[]).push(p);});
+      Object.values(grp).forEach(g=>{g.sort((a,b)=>a.e.col-b.e.col);let l=0;g.forEach((p,i)=>{l=(i>0&&p.e.col-g[i-1].e.col<=2)?1-l:0;liv[p.e.key||p.e.n]=l;});});
+      pts.forEach(p=>{const c=rgb(SRC[p.e.src].c);const x=X(p.x),y=Y(p.y);
+        const w=Math.max(mw2,dettaglio?1.6:1.3),h=Math.max(mh2,dettaglio?3:2.4);
+        doc.setFillColor(...c);doc.setDrawColor(20,20,20);doc.setLineWidth(0.15);doc.rect(x-w/2,y-h/2,w,h,'FD');
+        if(dettaglio){const l=liv[p.e.key||p.e.n]||0;doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(...ink);
+          const up=p.e.pos==='A';doc.text(String(p.e.n??'+'),x,up?y-h/2-0.8-l*2.6:y+h/2+2.4+l*2.6,{align:'center'});}
+      });
+      if(zone){doc.setLineWidth(0.4);doc.setDrawColor(...cyan);doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(...cyan);
+        zone.forEach((z,i)=>{doc.rect(X(z.x0),Y(z.y0),(z.x1-z.x0)*s,(z.y1-z.y0)*s,'S');doc.text('Zona '+(i+1),X(z.x0)+1,Y(z.y0)+3.2);});}
+      doc.restoreGraphicsState();
+    }
+    function legenda(y){
+      let x=M;doc.setFontSize(7.5);doc.setFont('helvetica','normal');
+      const used=[...new Set(list.map(e=>e.src))];
+      used.forEach(k=>{const c=rgb(SRC[k].c);doc.setFillColor(...c);doc.setDrawColor(20,20,20);doc.rect(x,y-2.6,3,3,'FD');doc.setTextColor(...ink);
+        const t=`${SRC[k].lab} (${list.filter(e=>e.src===k).length})`;doc.text(t,x+4.2,y);x+=doc.getTextWidth(t)+10;});
+      doc.setTextColor(...muted);doc.setFontSize(7);const m0=(CUR.moduli_tipo||[])[0];doc.text(`${m0?'Modulo installato: '+modTxt(m0)+(Object.keys(CUR.moduli_eccezioni||{}).length?' (alcune posizioni diverse)':'')+'. ':''}Tavolo = numero progressivo (T). Posizione A = fila di moduli 1, B = fila 2. ${CUR.nota_orientamento||''}`,M,y+5,{maxWidth:PW-2*M});
+    }
+    // zone di dettaglio a scala fissa (modulo largo circa 2,5 mm): copre tutti i moduli esportati
+    const AREA={x:M,y:22,w:PW-2*M,h:PH-22-24}, SD=0.40, ZW=AREA.w/SD, ZH=AREA.h/SD;
+    const resto=pts.slice().sort((a,b)=>a.y-b.y||a.x-b.x), zone=[];
+    while(resto.length){const p0=resto[0];let z={x0:p0.x-ZW*0.15,y0:p0.y-ZH*0.12};z.x1=z.x0+ZW;z.y1=z.y0+ZH;
+      const dentro=resto.filter(p=>p.x>=z.x0+8&&p.x<=z.x1-8&&p.y>=z.y0+20&&p.y<=z.y1-20);
+      const cx=(Math.min(...dentro.map(p=>p.x))+Math.max(...dentro.map(p=>p.x)))/2, cy=(Math.min(...dentro.map(p=>p.y))+Math.max(...dentro.map(p=>p.y)))/2;
+      z={x0:cx-ZW/2,x1:cx+ZW/2,y0:cy-ZH/2,y1:cy+ZH/2};
+      const presi=resto.filter(p=>p.x>=z.x0+8&&p.x<=z.x1-8&&p.y>=z.y0+20&&p.y<=z.y1-20);
+      (presi.length?presi:[p0]).forEach(p=>resto.splice(resto.indexOf(p),1)); zone.push(z);}
+    // pagina 1: impianto intero, con le zone
+    testata(`Layout impianto · ${CUR.impianto}`);
+    disegna(bboxAll,AREA,false,zone);
+    legenda(PH-15);
+    zone.forEach((z,i)=>{doc.addPage();testata(`Zona ${i+1} di ${zone.length} · ${CUR.impianto}`);disegna(z,AREA,true,null);legenda(PH-15);});
+    // tabella da compilare
+    doc.addPage();testata(`Scheda di campo · ${CUR.impianto}`);
+    const body=list.map(e=>{const f=e.f||{};const mn=modNuovo(e);return [e.n??'+',e.fila,e.tav,e.col,e.pos,(SRC[e.src].breve||SRC[e.src].lab),f.letto||e.ser,f.nuovo||'',mn&&!stessoMod(mn,modOf(e.tav,e.col,e.pos))?modTxt(mn):'','',''];});
+    doc.autoTable({startY:22,margin:{left:M,right:M,top:22,bottom:14},
+      head:[['N°','Fila','Tavolo','Col.','Pos.','Rilevazione','Seriale vecchio','Seriale nuovo (a penna)','Modello / W nuovo (se diverso)','Data','Note / firma']],
+      body,theme:'grid',
+      styles:{font:'helvetica',fontSize:8.5,cellPadding:{top:2.6,bottom:2.6,left:1.6,right:1.6},lineColor:[200,196,220],lineWidth:0.15,textColor:ink,valign:'middle',minCellHeight:9},
+      headStyles:{fillColor:navy,textColor:255,fontStyle:'bold',fontSize:7.5,minCellHeight:7},
+      columnStyles:{0:{cellWidth:10,halign:'center'},1:{cellWidth:11,halign:'center'},2:{cellWidth:14,halign:'center'},3:{cellWidth:11,halign:'center'},4:{cellWidth:10,halign:'center'},
+        5:{cellWidth:29},6:{cellWidth:38,font:'courier'},7:{cellWidth:52},8:{cellWidth:42},9:{cellWidth:18},10:{cellWidth:'auto'}},
+      didParseCell:d=>{if(d.section==='body'&&d.column.index===0){const e=list[d.row.index];d.cell.styles.fillColor=rgb(SRC[e.src].c).map(v=>Math.round(v+(255-v)*0.7));}},
+      didDrawPage:()=>{testata(`Scheda di campo · ${CUR.impianto}`);}
+    });
+    const n=doc.getNumberOfPages();
+    for(let i=1;i<=n;i++){doc.setPage(i);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(...muted);
+      doc.text(`REFLOW iMAPS · ${CUR.cliente} · ${CUR.impianto} · ${att.titolo}`,M,PH-5);doc.text(`Pagina ${i} di ${n}`,PW-M,PH-5,{align:'right'});
+      try{if(i===1)doc.addImage(logoC,'PNG',PW-M-30,PH-23,30,6);}catch(e){}}
+    const nome=`${CUR.impianto.replace(/[·\\/:*?"<>|]/g,'-').replace(/\s+/g,' ').trim()} - Layout ${oggi.replace(/\//g,'-')}.pdf`;
+    const dl=window.claude?await claude.use('downloads'):null;
+    if(dl){try{await dl.save({filename:nome,data:doc.output('blob')});}catch(e){if(e&&e.code!=='declined')alertBox('Download non riuscito ('+(e.code||'errore')+').');}}
+    else doc.save(nome);
+  }catch(err){alertBox('Non sono riuscito a creare il PDF: '+(err&&err.message||err));}
+  finally{btn.disabled=false;btn.innerHTML=old;}
+}
+function alertBox(t){const m=$('mapview').hidden?$('toast'):$('msgmap');m.textContent=t;m.hidden=false;clearTimeout(alertBox.t);alertBox.t=setTimeout(()=>m.hidden=true,6000);}
+$('b-pdf').onclick=estraiLayout;
+// ---------- Estrazione seriali (PDF per i PM / Ufficio Pratiche) ----------
+async function estraiSeriali(){
+  const btn=$('b-ser'), old=btn.innerHTML; btn.disabled=true; btn.textContent='Preparo il PDF…';
+  try{
+    await libs();
+    const list=entries().filter(e=>stateOf(e)&&match(e)).sort((a,b)=>a.fila-b.fila||a.tav-b.tav||a.col-b.col||a.pos.localeCompare(b.pos));
+    if(!list.length){$('msg').textContent='Nessun modulo da esportare con i filtri attuali.';return;}
+    const {jsPDF}=window.jspdf; const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    const PW=297, PH=210, M=10, oggi=new Date().toLocaleDateString('it-IT'), att=camp();
+    const navy=[24,6,60], cyan=[23,179,232], ink=[36,31,58], muted=[109,106,130];
+    const logoW=document.querySelector('img.brand').src;
+    const sost=list.filter(e=>stateOf(e)==='sostituito'), senza=sost.filter(e=>!(e.f&&e.f.nuovo));
+    const dataIt=d=>d?d.split('-').reverse().join('/'):'';
+    function testata(){
+      doc.setFillColor(...navy);doc.rect(0,0,PW,17,'F');doc.setFillColor(...cyan);doc.rect(0,17,PW,0.8,'F');
+      try{doc.addImage(logoW,'PNG',M,4.2,43,8.4);}catch(e){}
+      doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(12.5);doc.text(`Estrazione seriali · ${CUR.impianto}`,62,8);
+      doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(200,200,220);
+      doc.text(`${CUR.cliente} · ${att.titolo} · estratto il ${oggi} · filtro: ${filtroDescr()}`,62,13.2,{maxWidth:PW-62-M});
+    }
+    testata();
+    // riepilogo
+    doc.setTextColor(...ink);doc.setFont('helvetica','bold');doc.setFontSize(10);
+    doc.text(`Moduli nell'estrazione: ${list.length}   ·   sostituiti: ${sost.length}   ·   da sostituire: ${list.length-sost.length}`,M,25);
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...muted);
+    const potO=sost.reduce((s,e)=>s+(+((modOf(e.tav,e.col,e.pos)||{}).potenza_w)||0),0);
+    const potN=sost.reduce((s,e)=>{const mn=modNuovo(e)||modOf(e.tav,e.col,e.pos)||{};return s+(+mn.potenza_w||0);},0);
+    const diversi=sost.filter(e=>{const mn=modNuovo(e);return mn&&!stessoMod(mn,modOf(e.tav,e.col,e.pos));});
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(...ink);
+    if(sost.length)doc.text(`Potenza moduli sostituiti: rimossa ${(potO/1000).toLocaleString('it-IT',{maximumFractionDigits:3})} kWp · installata ${(potN/1000).toLocaleString('it-IT',{maximumFractionDigits:3})} kWp · differenza ${((potN-potO)/1000).toLocaleString('it-IT',{maximumFractionDigits:3,signDisplay:'always'})} kWp · moduli di modello o potenza diversi: ${diversi.length}`,M,30);
+    doc.setFontSize(8);doc.setTextColor(...muted);
+    doc.text(senza.length?`Attenzione: ${senza.length===1?'1 modulo segnato':senza.length+' moduli segnati'} come sostituit${senza.length===1?'o':'i'} senza seriale nuovo (evidenziat${senza.length===1?'o':'i'} in tabella).`:`Sottotitolo impianto: ${CUR.sottotitolo}`,M,sost.length?35:30,{maxWidth:PW-2*M});
+    const body=list.map(e=>{const f=e.f||{};const st=stateOf(e);const letto=f.letto&&f.letto!==e.ser;const mo=modOf(e.tav,e.col,e.pos),mn=modNuovo(e);
+      return [e.n??'+',e.fila,e.tav,e.col,e.pos,letto?`${f.letto}\n(tabella: ${e.ser})`:e.ser,modTxt(mo),f.nuovo||'',st==='sostituito'?modTxt(mn||mo):'',dataIt(f.data),STATI[st]||'',[e.mv?'Posizione corretta in app (sulla carta '+e.mv.replace(/^T(\d+)-C(\d+)-([AB])$/,'T$1 C$2 $3')+')':'',f.note||''].filter(Boolean).join(' · ')];});
+    doc.autoTable({startY:sost.length?39:34,margin:{left:M,right:M,top:22,bottom:14},
+      head:[['N°','Fila','Tavolo','Col.','Pos.','Seriale vecchio','Modulo vecchio','Seriale nuovo','Modulo nuovo','Data sostit.','Stato','Note']],
+      body,theme:'grid',
+      styles:{font:'helvetica',fontSize:8.2,cellPadding:1.8,lineColor:[200,196,220],lineWidth:0.15,textColor:ink,valign:'middle'},
+      headStyles:{fillColor:navy,textColor:255,fontStyle:'bold',fontSize:7.5},
+      columnStyles:{0:{cellWidth:10,halign:'center'},1:{cellWidth:10,halign:'center'},2:{cellWidth:13,halign:'center'},3:{cellWidth:10,halign:'center'},4:{cellWidth:10,halign:'center'},
+        5:{cellWidth:36,font:'courier'},6:{cellWidth:38,fontSize:7.2},7:{cellWidth:36,font:'courier',fontStyle:'bold'},8:{cellWidth:38,fontSize:7.2},9:{cellWidth:18},10:{cellWidth:22},11:{cellWidth:'auto'}},
+      didParseCell:d=>{if(d.section!=='body')return;const e=list[d.row.index];
+        if(d.column.index===0)d.cell.styles.fillColor=rgb(SRC[e.src].c).map(v=>Math.round(v+(255-v)*0.7));
+        if(d.column.index===7&&stateOf(e)==='sostituito'&&!(e.f&&e.f.nuovo))d.cell.styles.fillColor=[255,246,229];
+        if(d.column.index===8&&stateOf(e)==='sostituito'){const mn=modNuovo(e);if(mn&&!stessoMod(mn,modOf(e.tav,e.col,e.pos))){d.cell.styles.fillColor=[255,246,229];d.cell.styles.fontStyle='bold';}}},
+      didDrawPage:()=>testata()
+    });
+    const n=doc.getNumberOfPages();
+    for(let i=1;i<=n;i++){doc.setPage(i);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(...muted);
+      doc.text(`REFLOW iMAPS · ${CUR.cliente} · ${CUR.impianto} · ${att.titolo}`,M,PH-5);doc.text(`Pagina ${i} di ${n}`,PW-M,PH-5,{align:'right'});}
+    const nome=`${CUR.impianto.replace(/[·\\/:*?"<>|]/g,'-').replace(/\s+/g,' ').trim()} - Seriali ${oggi.replace(/\//g,'-')}.pdf`;
+    const dl=window.claude?await claude.use('downloads'):null;
+    if(dl){try{await dl.save({filename:nome,data:doc.output('blob')});$('msg').textContent='';}catch(e){if(e&&e.code!=='declined')$('msg').textContent='Download non riuscito ('+(e.code||'errore')+').';}}
+    else doc.save(nome);
+  }catch(err){$('msg').textContent='Non sono riuscito a creare il PDF: '+(err&&err.message||err);}
+  finally{btn.disabled=false;btn.innerHTML=old;}
+}
+$('b-ser').onclick=estraiSeriali;
+
+
+window.addEventListener('resize',()=>{if(CURID)apply();});
+route();
+</script>
+</body>
+</html>
