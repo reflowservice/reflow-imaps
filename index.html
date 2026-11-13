@@ -380,7 +380,7 @@ tbody tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--cyan)}
       <button class="btn" id="b-list" aria-expanded="false" aria-controls="listpop" title="Elenco e filtri"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8"/><circle cx="2.6" cy="4" r=".6" fill="currentColor"/><circle cx="2.6" cy="8" r=".6" fill="currentColor"/><circle cx="2.6" cy="12" r=".6" fill="currentColor"/></svg><span class="tx">Elenco e filtri</span></button>
       <button class="btn" id="b-multi" aria-pressed="false" title="Seleziona più moduli e aggiorna lo stato di tutti insieme"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="1.8" width="5" height="5" rx="1"/><rect x="9.2" y="1.8" width="5" height="5" rx="1"/><rect x="1.8" y="9.2" width="5" height="5" rx="1"/><path d="M10 11.6l1.4 1.4 2.6-2.8" stroke-linecap="round"/></svg><span class="tx">Selezione multipla</span></button>
       <button class="btn" id="b-undo" disabled title="Nessuna modifica nell'ultimo minuto da annullare"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 3.5L2.5 6.5l3 3"/><path d="M2.5 6.5h7a4 4 0 0 1 0 8H7"/></svg><span class="tx">Ripristina modifiche</span></button>
-      <button class="btn" id="b-sat" hidden title="Apri l'impianto in Google Earth (vista satellitare, nuova finestra)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M1.8 8h12.4M8 1.8c1.8 1.7 2.7 3.8 2.7 6.2S9.8 12.5 8 14.2C6.2 12.5 5.3 10.4 5.3 8S6.2 3.5 8 1.8z"/></svg><span class="tx">Satellite</span></button>
+      <button class="btn" id="b-sat" hidden title="Vista satellitare dell'impianto (Bing Maps, nuova finestra)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M1.8 8h12.4M8 1.8c1.8 1.7 2.7 3.8 2.7 6.2S9.8 12.5 8 14.2C6.2 12.5 5.3 10.4 5.3 8S6.2 3.5 8 1.8z"/></svg><span class="tx">Satellite</span></button>
       <span class="sep" aria-hidden="true"></span>
       <button class="btn pdf" id="b-pdf" title="PDF con planimetria e scheda da compilare in campo, secondo i filtri attivi"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 1.8H4.2a1 1 0 0 0-1 1v10.4a1 1 0 0 0 1 1h7.6a1 1 0 0 0 1-1V5.1z"/><path d="M9.5 1.8v3.3h3.3M8 7.5v4.2M6.2 10l1.8 1.8L9.8 10"/></svg><span class="tx">Estrai layout</span></button>
     </div>
@@ -694,7 +694,8 @@ async function openMap(id){
     unsubF=db.collection(`impianti/${id}/fonti`).onSnapshot(snap=>{FONTI={};snap.docs.forEach(x=>{if(x.exists)FONTI[x.id]=x.data();});buildSrc();},()=>{});
   }else render();
 }
-// bussola (nord_gradi: rotazione del nord rispetto all'alto della mappa, in senso orario) e vista satellitare in Google Earth
+// bussola (nord_gradi: rotazione del nord rispetto all'alto della mappa, in senso orario) e vista satellitare.
+// Satellite su Bing Maps: per l'impianto pilota le immagini di Google Earth/Maps sono precedenti alla costruzione (verificato 13/11/2026).
 function setGeo(){
   const n=CUR.nord_gradi, c=CUR.coordinate;
   $('compass').hidden=typeof n!=='number';
@@ -702,7 +703,7 @@ function setGeo(){
   $('b-sat').hidden=!(c&&typeof c.lat==='number'&&typeof c.lon==='number');
 }
 $('b-sat').onclick=()=>{const c=CUR&&CUR.coordinate;if(!c)return;
-  window.open(`https://earth.google.com/web/@${c.lat},${c.lon},10a,${c.distanza_m||900}d,35y,${(360-(CUR.nord_gradi||0))%360}h,0t,0r`,'_blank','noopener');};
+  window.open(`https://www.bing.com/maps?cp=${c.lat}~${c.lon}&lvl=${c.zoom||17}&style=a`,'_blank','noopener');};
 function buildCamps(){CAMPS=CUR.attivita.map((a,i)=>({...a,id:a.id||('a'+i),path:`impianti/${CURID}/moduli`}));}
 function fillCamp(){
   const c=$('camp'); c.innerHTML=CAMPS.map((a,i)=>`<option value="${i}">${esc(a.titolo)}</option>`).join('');

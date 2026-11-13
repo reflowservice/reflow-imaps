@@ -25,7 +25,7 @@ impianto.json (vedi impianti/<impianto pilota>):
                 diversi dal tipo prevalente vengono presi da lì, posizione per posizione
   sottotitolo, nota_orientamento
   coordinate    facoltativo {lat, lon, fonte}: gradi decimali WGS84 di un punto dell'impianto; abilita il
-                pulsante "Satellite" (Google Earth). Fonte tipica: REFLOW MASTER, foglio Impianti
+                pulsante "Satellite" (Bing Maps). Verificare il punto sull'immagine satellitare
   nord_gradi    facoltativo: rotazione del nord rispetto all'alto della mappa, in gradi, senso orario
                 (0 = nord in alto). Solo se verificato sul layout: senza, la bussola non compare
   attivita      elenco delle attività sulla mappa (es. una campagna di sostituzione moduli):
