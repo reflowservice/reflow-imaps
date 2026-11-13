@@ -36,18 +36,19 @@ Implementazione: file `REFLOW iMAPS/ruoli.json` (mail → ruolo), modificabile s
 
 Il modello è quello già in uso nel prototipo (database dell'artefatto). Chiave posizione modulo: `T{tavolo}-C{colonna}-{A|B}`.
 
-### 4.1 File `REFLOW iMAPS/dati/<id impianto>.json`
+### 4.1 File `REFLOW iMAPS/dati/<id impianto>.json` (formato in uso dalla beta del 13/11/2026)
 ```json
 {
   "versione": 1,
-  "schede":      { "<attività>|<chiave>": { "stato": "da_sostituire|sostituito|ok", "letto": "", "nuovo": "",
-                    "marca_nuova": "", "modello_nuovo": "", "potenza_nuova": 0, "data": "AAAA-MM-GG", "note": "",
-                    "causa": "", "ril": "<id rilevazione>", "n": 70, "spostato_a": "", "spostato_da": "",
-                    "by": "<mail>", "at": "<ISO>" } },
-  "rilevazioni": { "<rid>": { "attivita": "", "titolo": "", "data": "", "note": "", "colore": "#hex", "by": "", "at": "" } },
-  "fonti":       { "<attività>__<codice fonte>": { "titolo": "", "data": "", "note": "", "colore": "", "eliminata": false } }
+  "aggiornato": "<ISO>",
+  "docs": {
+    "moduli/<chiave modulo>": { "stato": "da_sostituire|sostituito|ok", "...": "campi della scheda come nel prototipo" },
+    "rilevazioni/<rid>":      { "titolo": "", "data": "", "note": "", "colore": "#hex", "...": "" },
+    "fonti/<attività>__<fonte>": { "titolo": "", "data": "", "colore": "", "eliminata": false }
+  }
 }
 ```
+Le chiavi sono i percorsi del database del prototipo senza il prefisso `impianti/<id>/`: così la pagina del prototipo gira invariata e `cloud.js` traduce le chiamate `db.collection(...)` / `db.doc(...)` in letture e scritture del file. Le richieste di nuovi impianti stanno in `REFLOW iMAPS/richieste/richieste.json` con chiavi `richieste/<rid>`. Le modifiche ravvicinate partono in un solo salvataggio; le viste aperte controllano l'eTag ogni 15 secondi e si aggiornano se il file è cambiato.
 Per i moduli da file la chiave è la posizione trascritta sulla carta. Ogni salvataggio è una modifica puntuale (una scheda, una rilevazione, una correzione) applicata all'ultima versione del file con `If-Match`; in caso di conflitto (HTTP 412) si ricarica e si riapplica. Il file resta piccolo (decine di KB anche con centinaia di schede).
 
 ### 4.2 Impianti in preparazione: `REFLOW iMAPS/richieste/<id richiesta>/`
