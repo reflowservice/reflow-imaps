@@ -4,7 +4,7 @@
 'use strict';
 
 // ---------- configurazione ----------
-const CLIENT_ID = '8ffb57e1-fbd1-4a67-baaf-b6321ffe4a85';          // app registration "REFLOW iMAPS"
+const CLIENT_ID = 'ef16e670-e362-4954-a912-b628afde91a0';          // registrazione condivisa "Reflow Planner" (consenso admin già concesso)
 const TENANT_ID = 'd53a79c7-2449-4eca-be76-4bd4b7482c96';          // tenant REFLOW SRL
 const SITE_HOST = 'reflowservice.sharepoint.com';
 const SITE_PATH = '/sites/ReflowArchive';
