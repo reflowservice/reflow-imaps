@@ -30,7 +30,7 @@ Nasce come artefatto Claude (prototipo funzionante, 11-12/11/2026, impianto pilo
 | Ufficio tecnico | da definire | come PM + "Aggiungi impianto" (caricamento documenti) |
 | Amministratore | Luca Alberton | tutto + pubblicazione impianti, ripristino rilevazioni eliminate, modifiche strutturali |
 
-Implementazione: file `REFLOW iMAPS/ruoli.json` (mail → ruolo), modificabile solo dall'amministratore, oppure gruppi Entra ID letti con Graph (`/me/memberOf`). Da decidere (§9). I permessi effettivi di scrittura restano quelli di SharePoint: i ruoli nell'app nascondono le funzioni, i permessi delle liste le proteggono.
+Implementazione: file `REFLOW iMAPS/ruoli.json` (mail → ruolo), modificabile solo dall'amministratore, oppure gruppi Entra ID letti con Graph (`/me/memberOf`). Da decidere (§9). I permessi effettivi di scrittura restano quelli di SharePoint: i ruoli nell'app nascondono le funzioni, i permessi della cartella `REFLOW iMAPS` proteggono i dati. Limite noto: chi ha accesso in scrittura alla cartella può modificare i file anche fuori dall'app.
 
 ## 4. Modello dati
 
