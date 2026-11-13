@@ -506,7 +506,7 @@ const ready=(async()=>{
 })();
 function refresh(){if(CURID)render();else drawHome();}
 // ---------- routing ----------
-async function route(){
+async function route(){if(typeof flushAuto==="function")flushAuto();
   const id=decodeURIComponent(location.hash.slice(1));
   if(!CAT.length){try{CAT=JSON.parse(document.getElementById('catalogo').textContent);}catch(e){CAT=[];}}
   if(id&&CAT.find(c=>c.id===id))openMap(id); else if(id==='impianti')showHome(); else showSplash();
@@ -803,7 +803,7 @@ function subMods(){
 }
 $('camp').onchange=e=>{setCampaign(+e.target.value);subMods();};
 function setCampaign(i){
-  CAMP=i; const a=camp(); SELM.clear(); sel=null; closePop('schedapop',true);
+  flushAuto(); CAMP=i; const a=camp(); SELM.clear(); sel=null; closePop('schedapop',true);
   BASE={}; a.mods.forEach(m=>{m.key=keyOf(m.tav,m.col,m.pos);BASE[m.key]=m;});
   SRC={}; on=new Set(); delAsk=null; buildSrc();
 }
@@ -943,7 +943,7 @@ function fitTo(list){if(!list.length){fit();return;}let a=1e9,c=1e9,b2=-1e9,d=-1
   const ar=(svg.clientHeight/svg.clientWidth)||.6;let w=Math.max(b2-a+120,300),h=Math.max(d-c+120,w*ar);w=Math.max(w,h/ar);vb={x:(a+b2)/2-w/2,y:(c+d)/2-h/2,w,h:w*ar};apply();}
 // ---------- pannelli ----------
 function openPop(id){$(id).hidden=false;const b=document.querySelector(`[aria-controls="${id}"]`);if(b)b.setAttribute('aria-expanded','true');}
-function closePop(id,silent){$(id).hidden=true;const b=document.querySelector(`[aria-controls="${id}"]`);if(b)b.setAttribute('aria-expanded','false');if(id==='schedapop'&&!silent){sel=null;dirty=false;render();}}
+function closePop(id,silent){if(id==='schedapop')flushAuto();$(id).hidden=true;const b=document.querySelector(`[aria-controls="${id}"]`);if(b)b.setAttribute('aria-expanded','false');if(id==='schedapop'&&!silent){sel=null;dirty=false;render();}}
 function togglePop(id){$(id).hidden?openPop(id):closePop(id);}
 $('b-leg').onclick=()=>{if(!$('listpop').hidden)closePop('listpop');togglePop('legend');};
 $('b-list').onclick=()=>{if(!$('legend').hidden)closePop('legend');togglePop('listpop');};
@@ -955,7 +955,7 @@ document.querySelectorAll('.kpi').forEach(k=>k.onclick=()=>{const f=k.dataset.f;
 function filtriAttivi(){return !!($('q').value.trim()||$('stato').value||Object.keys(SRC).some(k=>!on.has(k)));}
 $('b-reset').onclick=()=>{$('q').value='';$('stato').value='';on=new Set(Object.keys(SRC));
   $('chips').querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed','true'));render();fit();};
-function select(k,zoomTo){sel=k;moveTap=false;openPop('schedapop');const [t,col,pos]=posOf(k);if(zoomTo)focusOn(t,col,pos);dirty=false;render();}
+function select(k,zoomTo){if(k!==sel)flushAuto();sel=k;moveTap=false;openPop('schedapop');const [t,col,pos]=posOf(k);if(zoomTo)focusOn(t,col,pos);dirty=false;render();}
 // ---------- scheda ----------
 function fmtTime(iso){try{return new Date(iso).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return iso;}}
 function detail(){
@@ -999,33 +999,60 @@ function detail(){
     <input id="f-data" type="date" value="${esc(f.data)}">
     <label for="f-note">Note</label>
     <textarea id="f-note" rows="2">${esc(f.note)}</textarea>
-    <div class="frm-actions"><button class="btn primary" type="submit" ${ro?'disabled':''}>Salva</button>${f.at&&!ro?'<button class="btn" type="button" id="f-del">Svuota scheda</button>':''}<span id="f-msg" role="status" class="hint">${why}</span></div>
+    <div class="frm-actions">${f.at&&!ro?'<button class="btn" type="button" id="f-del">Svuota scheda</button>':''}<span id="f-msg" role="status" class="hint">${why||(f.at?'Salvataggio automatico attivo.':'Le modifiche si salvano da sole.')}</span></div>
     ${canMove(sel)&&!ro?`<div class="frm-actions"><button class="btn" type="button" id="f-move">Sposta in un'altra posizione</button>${mvFrom?'<button class="btn" type="button" id="f-back">Riporta dove era sulla carta</button>':''}</div><p class="hint">Per correggere un errore di trascrizione puoi anche trascinare il modulo selezionato sulla mappa.</p>`:''}
     ${who}
   </form>`;
   const frm=$('frm');
-  frm.addEventListener('input',()=>{dirty=true;});
+  const k0=sel;
+  const collect=()=>({stato:$('f-stato').value,letto:$('f-letto').value.trim(),nuovo:$('f-nuovo').value.trim(),marca_nuova:$('f-marca').value.trim(),modello_nuovo:$('f-mod').value.trim(),potenza_nuova:$('f-pot').value.trim(),data:$('f-data').value,note:$('f-note').value.trim(),...($('f-causa')?{causa:$('f-causa').value.trim()}:{})});
+  // salvataggio automatico: parte da solo poco dopo l'ultima modifica, e comunque quando si cambia modulo o si chiude la scheda
+  if(!ro){
+    AUTO={k:k0,collect,t:null,frm};
+    const kick=ms=>{dirty=true;clearTimeout(AUTO.t);$('f-msg').textContent='Modifiche in corso…';AUTO.t=setTimeout(()=>flushAuto(),ms);};
+    frm.addEventListener('input',e=>kick(e.target.tagName==='SELECT'||e.target.type==='date'?200:1200));
+    frm.addEventListener('change',e=>{if(e.target.tagName==='SELECT'||e.target.type==='date')kick(200);});
+  }else AUTO=null;
   $('f-nuovo').addEventListener('input',ev=>{if(ev.target.value.trim()&&$('f-stato').value!=='sostituito')$('f-stato').value='sostituito';});
-  frm.addEventListener('submit',async ev=>{ev.preventDefault();await save(sel,{stato:$('f-stato').value,letto:$('f-letto').value.trim(),nuovo:$('f-nuovo').value.trim(),marca_nuova:$('f-marca').value.trim(),modello_nuovo:$('f-mod').value.trim(),potenza_nuova:$('f-pot').value.trim(),data:$('f-data').value,note:$('f-note').value.trim(),...($('f-causa')?{causa:$('f-causa').value.trim()}:{})});});
-  const del=$('f-del');if(del)del.onclick=async()=>{await removeDoc(sel);};
+  frm.addEventListener('submit',ev=>{ev.preventDefault();flushAuto();});
+  const del=$('f-del');if(del)del.onclick=async()=>{AUTO=null;await removeDoc(sel);};
   const mvb=$('f-move');if(mvb)mvb.onclick=()=>{moveTap=true;alertBox('Tocca sulla mappa la posizione corretta del modulo.');};
   const bk=$('f-back');if(bk)bk.onclick=()=>askMove(sel,mvFrom);
 }
 const validSer=s=>!s||/^\d{14,18}$/.test(s);
-async function save(k,data){
-  const msg=$('f-msg');
-  if(!validSer(data.letto)||!validSer(data.nuovo)){msg.textContent='Un seriale deve contenere solo cifre (14-18).';return;}
-  if(data.potenza_nuova&&!/^\d{2,4}(\.\d+)?$/.test(data.potenza_nuova)){msg.textContent='La potenza va indicata in W, solo numero (es. 625).';return;}
+// salvataggio automatico della scheda aperta
+let AUTO=null;
+function flushAuto(){
+  const a=AUTO; if(!a)return Promise.resolve();
+  clearTimeout(a.t); a.t=null;
+  if(!a.frm||!a.frm.isConnected)return Promise.resolve();
+  return save(a.k,a.collect(),true);
+}
+window.addEventListener('pagehide',()=>{flushAuto();});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushAuto();});
+const SAVEKEYS=['stato','letto','nuovo','marca_nuova','modello_nuovo','potenza_nuova','data','note','causa'];
+async function save(k,data,auto){
+  const where=()=>{const v=V[posOf(k)[0]];return v?`F${v.fila} · T${posOf(k)[0]} · C${posOf(k)[1]} ${posOf(k)[2]}`:k;};
+  const say=t=>{const m=$('f-msg');if(m&&sel===k)m.textContent=t;else if(auto&&t)alertBox(`Scheda ${where()}: ${t}`);};
+  if(!validSer(data.letto)||!validSer(data.nuovo)){say('non salvata, un seriale deve contenere solo cifre (14-18).');return false;}
+  if(data.potenza_nuova&&!/^\d{2,4}(\.\d+)?$/.test(data.potenza_nuova)){say('non salvata, la potenza va indicata in W, solo numero (es. 625).');return false;}
   if(data.stato!=='sostituito'&&!data.nuovo){data.marca_nuova='';data.modello_nuovo='';data.potenza_nuova='';}
-  if(!db){msg.textContent='Salvataggio non disponibile in questa vista.';return;}
+  if(!db){say('Salvataggio non disponibile in questa vista.');return false;}
+  const path=`${camp().path}/${k}`, FLD=FIELD, prev=FIELD[k]||{};
+  if(FIELD[k]&&SAVEKEYS.every(x=>(data[x]??'')===(prev[x]??''))){if(sel===k&&$('f-msg'))$('f-msg').textContent='Salvato.';return true;}
   const uid=user?await user.id():null;
-  const body={...(FIELD[k]||{}),...data,by:uid,at:new Date().toISOString()};
+  const body={...prev,...data,by:uid,at:new Date().toISOString()};
   if(!BASE[k]&&body.ril&&body.stato&&body.n==null)body.n=nextN();
-  msg.textContent='Salvataggio…';
-  try{await dset(`${camp().path}/${k}`,body);dirty=false;FIELD[k]=body;msg.textContent='Salvato.';render();}
-  catch(e){if(e&&e.code==='invalid_argument'){canWrite=false;msg.textContent='Non hai il permesso di salvare.';}
-    else if(e&&e.code==='unavailable'){msg.textContent='Archivio non raggiungibile, riprova tra poco.';}
-    else msg.textContent='Salvataggio non riuscito ('+(e&&e.code||'errore')+').';}
+  if(sel===k&&$('f-msg'))$('f-msg').textContent='Salvataggio…';
+  try{await dset(path,body);FLD[k]=body;
+    const ora=new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    if(sel===k&&$('f-msg')&&!(AUTO&&AUTO.t))$('f-msg').textContent='Salvato alle '+ora+'.';
+    if(!auto)dirty=false;   // salvataggio automatico: la scheda resta aperta così com'è, si aggiornano mappa e contatori
+    render();return true;}
+  catch(e){if(e&&e.code==='invalid_argument'){canWrite=false;say('Non hai il permesso di salvare.');}
+    else if(e&&e.code==='unavailable'){say('archivio non raggiungibile, riprova tra poco.');}
+    else say('salvataggio non riuscito ('+(e&&e.code||'errore')+'), riprova.');
+    return false;}
 }
 async function removeDoc(k){try{const f=FIELD[k];
   if(BASE[k]&&f&&f.spostato_a){const body={spostato_a:f.spostato_a,by:f.by,at:new Date().toISOString()};await dset(`${camp().path}/${k}`,body);FIELD[k]=body;dirty=false;render();return;}
