@@ -42,6 +42,10 @@ sost("<script>\nconst $=id=>",
      '<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>\n'
      '<script src="cloud.js"></script>\n<script>\nconst $=id=>')
 sost("<title>REFLOW iMAPS</title>", "<title>REFLOW iMAPS (beta)</title>")
+sost("</style>\n</head>",
+     "#b-out{flex:none}\n"
+     "@media (max-width:820px){#b-out{position:absolute;top:12px;right:12px;margin:0;height:32px;padding:0 12px}}\n"
+     "</style>\n</head>")
 
 open(os.path.join(R, "index.html"), "w", encoding="utf-8").write(html)
 print("index.html scritto,", len(html), "caratteri")
