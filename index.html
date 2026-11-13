@@ -907,6 +907,23 @@ function fit(){vb={x:0,y:0,w:W,h:H};apply();}
 function zoom(f,cx,cy){if(cx===undefined){cx=vb.x+vb.w/2;cy=vb.y+vb.h/2;}const nw=Math.min(W*1.5,Math.max(60,vb.w*f));const k=nw/vb.w;vb={x:cx-(cx-vb.x)*k,y:cy-(cy-vb.y)*k,w:nw,h:vb.h*k};apply();}
 function toSvg(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
 svg.addEventListener('wheel',e=>{e.preventDefault();const p=toSvg(e);zoom(e.deltaY>0?1.2:1/1.2,p.x,p.y);},{passive:false});
+// zoom a due dita (pollice e indice) sul telefono: il punto tra le dita resta fermo, le dita spostano anche la vista
+const PTR=new Map(); let pinch=null;
+function twoFingers(){const [a,b]=[...PTR.values()];return {x:(a.x+b.x)/2,y:(a.y+b.y)/2,d:Math.hypot(a.x-b.x,a.y-b.y)||1};}
+svg.addEventListener('pointerdown',e=>{
+  PTR.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(PTR.size===2){const m=twoFingers();pinch={d0:m.d,vb0:{...vb},p0:toSvg({clientX:m.x,clientY:m.y})};
+    drag=null;lasso=null;mvDrag=null;if(ghost)ghost.setAttribute('visibility','hidden');svg.classList.remove('drag');$('tip').style.display='none';
+    try{svg.setPointerCapture(e.pointerId);}catch(_){}e.stopImmediatePropagation();}
+  else if(PTR.size>2||pinch)e.stopImmediatePropagation();},true);
+svg.addEventListener('pointermove',e=>{
+  if(!PTR.has(e.pointerId))return;PTR.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(!pinch)return;e.stopImmediatePropagation();if(PTR.size<2)return;
+  const m=twoFingers();const nw=Math.min(W*1.5,Math.max(60,pinch.vb0.w*pinch.d0/m.d));const k=nw/pinch.vb0.w;
+  vb={x:pinch.vb0.x,y:pinch.vb0.y,w:nw,h:pinch.vb0.h*k};apply();
+  const pm=toSvg({clientX:m.x,clientY:m.y});vb.x+=pinch.p0.x-pm.x;vb.y+=pinch.p0.y-pm.y;apply();},true);
+function pointerEnd(e){PTR.delete(e.pointerId);if(pinch){e.stopImmediatePropagation();if(!PTR.size)pinch=null;}}
+svg.addEventListener('pointerup',pointerEnd,true);svg.addEventListener('pointercancel',pointerEnd,true);
 let drag=null;
 svg.addEventListener('pointerdown',e=>{
   if(!multi&&sel&&canMove(sel)){const h=hit(toSvg(e));if(h&&POS[keyOf(h.t,h.col,h.pos)]===sel){mvDrag={key:sel,to:null,moved:false};svg.setPointerCapture(e.pointerId);return;}}
