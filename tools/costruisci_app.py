@@ -24,6 +24,10 @@ impianto.json (vedi impianti/<impianto pilota>):
                 e/o SUF/datasheet; se c'è modelli.json (abbina_registro --out-modelli) i moduli
                 diversi dal tipo prevalente vengono presi da lì, posizione per posizione
   sottotitolo, nota_orientamento
+  coordinate    facoltativo {lat, lon, fonte}: gradi decimali WGS84 di un punto dell'impianto; abilita il
+                pulsante "Satellite" (Google Earth). Fonte tipica: REFLOW MASTER, foglio Impianti
+  nord_gradi    facoltativo: rotazione del nord rispetto all'alto della mappa, in gradi, senso orario
+                (0 = nord in alto). Solo se verificato sul layout: senza, la bussola non compare
   attivita      elenco delle attività sulla mappa (es. una campagna di sostituzione moduli):
                 id, titolo, data_dati, file_moduli (CSV), file_csv (nome export), fonti
                 {codice: {lab, breve, c}}
@@ -96,6 +100,7 @@ def main():
         if a.solo and a.solo != iid: continue
         dati = dict(id=iid, cliente=cfg["cliente"], impianto=cfg["impianto"], sottotitolo=cfg["sottotitolo"] + " · Dati al " + data,
                     nota_orientamento=cfg.get("nota_orientamento", ""), attivita=attivita,
+                    **{k: cfg[k] for k in ("coordinate", "nord_gradi") if k in cfg},
                     moduli_tipo=tipi, moduli_eccezioni=mods_reg["eccezioni"],
                     vele=[[v["t"], v["fila"], v["vela"], v["ncol"], round(v["x0"], 1), round(v["x1"], 1), round(v["y0"], 1), round(v["y1"], 1)] for v in vele])
         d = os.path.join(out, "mappe", iid); os.makedirs(d, exist_ok=True)
