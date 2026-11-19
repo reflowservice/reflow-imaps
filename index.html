@@ -282,15 +282,15 @@ tbody tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--cyan)}
 @keyframes roseSpin{to{transform:rotate(360deg)}}
 @media (max-width:820px){.sp-rose{opacity:.6}}
 @media (prefers-reduced-motion:reduce){.sp-rose .rot,.sp-rose .needle,.sp-rose .ticks,.sp-rose .dots{animation:none}}
-/* schermata di aggiornamento (pulsante "Aggiorna"): stessa impostazione della schermata iniziale, con la linea a impulso */
+/* schermata di aggiornamento (pulsante "Aggiorna"): stessa impostazione della schermata iniziale; al posto della rosa, due file di moduli che si accendono in sequenza a ogni battito (--beat = BEAT_MS in aggiorna.js) */
 #gate{z-index:9999;transition:opacity .5s}
 #gate.out{opacity:0;visibility:hidden}
 #gate .sp-in p{margin:30px 0 0;min-height:2.2em}
-.gate-pulse{width:min(86vw,640px);height:84px;margin-top:26px;opacity:.7;overflow:visible}
-.gate-pulse path{fill:none;vector-effect:non-scaling-stroke;stroke:var(--cyan);stroke-width:2;stroke-linejoin:round;stroke-dasharray:900;stroke-dashoffset:900;
-  animation:gatePulse var(--beat,1s) ease-in-out infinite}
-@keyframes gatePulse{0%{stroke-dashoffset:900;opacity:0}15%{opacity:1}60%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
-@media (prefers-reduced-motion:reduce){.gate-pulse path{animation:none;stroke-dashoffset:0}}
+.gate-pulse{display:block;width:min(86vw,360px);height:auto;margin-top:30px;overflow:visible}
+.gate-pulse rect{fill:var(--cyan);opacity:.12;animation:gateMod var(--beat,1s) ease-in-out infinite;animation-delay:calc(var(--i)*60ms)}
+.gate-pulse rect.b{animation-delay:calc(var(--i)*60ms + 30ms)}
+@keyframes gateMod{0%{opacity:.12}8%{opacity:1}35%{opacity:.5}60%,100%{opacity:.12}}
+@media (prefers-reduced-motion:reduce){.gate-pulse rect{animation:none;opacity:.6}}
 .sp-foot{position:relative;z-index:1;display:flex;justify-content:space-between;gap:16px;font-size:12px;color:rgba(232,229,247,.5)}
 .brandlink{border:0;padding:0;background:none;cursor:pointer;display:block}
 @media (max-width:820px){
@@ -353,7 +353,7 @@ tbody tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--cyan)}
   <div class="sp-in">
     <h2 class="sp-title" aria-label="REFLOW iMAPS">REFLOW <span class="sp-i">i</span>MAPS</h2>
     <p id="gate-msg">Aggiornamento dei dati…</p>
-    <svg class="gate-pulse" viewBox="0 0 600 120" preserveAspectRatio="none" aria-hidden="true"><path d="M0 70 H190 L215 70 L235 22 L262 104 L288 46 L306 70 H600"/></svg>
+    <svg class="gate-pulse" viewBox="0 0 354 30" aria-hidden="true"><rect x="0" y="0" width="24" height="12" rx="1.5" style="--i:0"/><rect x="30" y="0" width="24" height="12" rx="1.5" style="--i:1"/><rect x="60" y="0" width="24" height="12" rx="1.5" style="--i:2"/><rect x="90" y="0" width="24" height="12" rx="1.5" style="--i:3"/><rect x="120" y="0" width="24" height="12" rx="1.5" style="--i:4"/><rect x="150" y="0" width="24" height="12" rx="1.5" style="--i:5"/><rect x="180" y="0" width="24" height="12" rx="1.5" style="--i:6"/><rect x="210" y="0" width="24" height="12" rx="1.5" style="--i:7"/><rect x="240" y="0" width="24" height="12" rx="1.5" style="--i:8"/><rect x="270" y="0" width="24" height="12" rx="1.5" style="--i:9"/><rect x="300" y="0" width="24" height="12" rx="1.5" style="--i:10"/><rect x="330" y="0" width="24" height="12" rx="1.5" style="--i:11"/><rect class="b" x="0" y="18" width="24" height="12" rx="1.5" style="--i:0"/><rect class="b" x="30" y="18" width="24" height="12" rx="1.5" style="--i:1"/><rect class="b" x="60" y="18" width="24" height="12" rx="1.5" style="--i:2"/><rect class="b" x="90" y="18" width="24" height="12" rx="1.5" style="--i:3"/><rect class="b" x="120" y="18" width="24" height="12" rx="1.5" style="--i:4"/><rect class="b" x="150" y="18" width="24" height="12" rx="1.5" style="--i:5"/><rect class="b" x="180" y="18" width="24" height="12" rx="1.5" style="--i:6"/><rect class="b" x="210" y="18" width="24" height="12" rx="1.5" style="--i:7"/><rect class="b" x="240" y="18" width="24" height="12" rx="1.5" style="--i:8"/><rect class="b" x="270" y="18" width="24" height="12" rx="1.5" style="--i:9"/><rect class="b" x="300" y="18" width="24" height="12" rx="1.5" style="--i:10"/><rect class="b" x="330" y="18" width="24" height="12" rx="1.5" style="--i:11"/></svg>
   </div>
   <div class="sp-foot"><span>Reflow S.r.l., gruppo ESPE</span><span></span></div>
 </div>

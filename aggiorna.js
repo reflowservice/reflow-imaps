@@ -3,11 +3,11 @@
    iMAPS salva le schede con una coda di scritture (cloud.js), quindi prima di ricaricare si salva la scheda aperta
    e si aspetta che la coda sia vuota; altrimenti le modifiche in sospeso andrebbero perse.
    Dopo il ricaricamento la schermata (#gate, già visibile grazie allo script in testa al body) resta per almeno
-   3 battiti della linea a impulso (3 secondi) e si chiude da sola alla fine di un battito, a dati caricati. */
+   3 battiti dei moduli che si accendono (3 secondi) e si chiude da sola alla fine di un battito, a dati caricati. */
 (function () {
   'use strict';
   const KEY = 'imaps_refresh';
-  const BEAT_MS = 1000;   // deve coincidere con --beat nel CSS di .gate-pulse (1s)
+  const BEAT_MS = 1000;   // deve coincidere con --beat nel CSS di #gate/.gate-pulse (1s; senza --beat il CSS usa 1s)
   const BEATS = 3;
   const $ = id => document.getElementById(id);
   let busy = false;
@@ -26,7 +26,7 @@
   function ready() {
     const g = $('gate'); if (!g || g.hidden || !window.IMAPS_REFRESH) return;
     $('gate-msg').textContent = 'Dati aggiornati';
-    const path = g.querySelector('.gate-pulse path');
+    const path = g.querySelector('.gate-pulse rect');
     const an = path && path.getAnimations ? path.getAnimations()[0] : null;
     const t = an && an.currentTime != null ? an.currentTime : performance.now();
     const fine = Math.ceil(Math.max(t, BEATS * BEAT_MS - 1) / BEAT_MS) * BEAT_MS;
