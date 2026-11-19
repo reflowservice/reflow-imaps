@@ -4,14 +4,13 @@ Uso:
     python costruisci_app.py <cartella REFLOW iMAPS> [--solo <id impianto>]
 
 Legge ogni sottocartella di impianti/ che contiene impianto.json e scrive in app/:
-    index.html                    l'app (pagina iniziale per cliente + visualizzatore)
     mappe/catalogo.json           elenco impianti mostrato nella pagina iniziale
     mappe/<id>/dati.json          testi, vele (geometria) e attività con i moduli
     mappe/<id>/seriali.json       seriali da registro per posizione (se presente)
-Si pubblica SOLO index.html sullo stesso artefatto (publish_files, modalità patch): catalogo
-e dati di tutti gli impianti sono incorporati nella pagina, perché la piattaforma artefatti non
-serve i file JSON alla pagina (verificato l'11/11/2026). I file in mappe/ restano come copia
-leggibile dei dati. Limite pratico: pagina fino a 16 MiB, circa 250 KB per impianto da ~12.000 moduli.
+L'app web (repository reflow-imaps, GitHub Pages) legge questi file da SharePoint via Graph:
+copiare app/mappe/ nella cartella REFLOW iMAPS su SharePoint basta a far comparire l'impianto,
+senza ripubblicare l'app. Dal 19/11/2026 non si genera più app/index.html (pagina dell'artefatto
+con i dati incorporati, superata dall'app web).
 
 impianto.json (vedi impianti/<impianto pilota>):
   id            identificativo stabile, solo minuscole, cifre e trattini (diventa #id nell'URL
@@ -37,7 +36,7 @@ CSV moduli (separatore ;):
 Controlli stampati per ogni attività: fila incoerente col tavolo, colonna fuori misura,
 fonte non definita, seriale diverso dal registro in quella posizione, conteggi per fonte.
 """
-import argparse, base64, csv, json, os, re, sys, collections
+import argparse, csv, json, os, re, sys, collections
 
 def carica_moduli(path, V, reg, fonti):
     mods, problemi = [], []
@@ -109,21 +108,7 @@ def main():
     ids = [c["id"] for c in catalogo]
     if len(ids) != len(set(ids)): sys.exit("Due impianti hanno lo stesso id.")
     json.dump(catalogo, open(os.path.join(out, "mappe", "catalogo.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    S = os.path.dirname(os.path.abspath(__file__))
-    html = open(os.path.join(S, "app_template.html"), encoding="utf-8").read()
-    # I dati sono incorporati nella pagina: la piattaforma artefatti non serve i file JSON alla pagina via fetch.
-    blocchi = ['<script id="catalogo" type="application/json">' + json.dumps(catalogo, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/") + "</script>"]
-    for c in catalogo:
-        d = os.path.join(out, "mappe", c["id"])
-        dj = open(os.path.join(d, "dati.json"), encoding="utf-8").read().replace("</", "<\\/")
-        sj = open(os.path.join(d, "seriali.json"), encoding="utf-8").read()
-        blocchi.append(f'<script type="application/json" data-dati="{c["id"]}">{dj}</script>')
-        blocchi.append(f'<script type="application/json" data-seriali="{c["id"]}">{sj}</script>')
-    html = html.replace("__MAPPE__", "\n".join(blocchi))
-    for k, f in (("__LOGO_W__", "logo_w.png"), ("__LOGO_C__", "logo_c.png")):
-        html = html.replace(k, base64.b64encode(open(os.path.join(S, f), "rb").read()).decode())
-    open(os.path.join(out, "index.html"), "w", encoding="utf-8").write(html)
-    print(f"app scritta in {out}: {len(catalogo)} impianti nel catalogo")
+    print(f"dati scritti in {out}/mappe: {len(catalogo)} impianti nel catalogo")
 
 if __name__ == "__main__":
     main()
