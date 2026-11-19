@@ -95,6 +95,7 @@
 
   // coda di scrittura per file: le modifiche ravvicinate partono insieme in un solo salvataggio
   const Q = {};
+  let FAILS = 0;   // salvataggi falliti (per IM.idle)
   function mutate(rel, fn) {
     return new Promise((res, rej) => {
       const q = Q[rel] = Q[rel] || { fns: [], timer: null, busy: false };
@@ -115,9 +116,21 @@
         catch (e) { if (e.code !== 'conflict' || tent >= 4) throw e; }
       }
       batch.forEach(b => b.res()); notify(rel);
-    } catch (e) { batch.forEach(b => b.rej(e)); }
+    } catch (e) { FAILS++; batch.forEach(b => b.rej(e)); }
     finally { q.busy = false; if (q.fns.length) q.timer = setTimeout(() => flush(rel), 50); }
   }
+  // attende che tutte le code di scrittura siano vuote (usato da "Aggiorna" prima di ricaricare la pagina);
+  // errore con code 'timeout' se non si svuotano in tempo, 'save_failed' se un salvataggio è fallito nell'attesa
+  IM.idle = async (maxMs = 20000) => {
+    const busy = () => Object.values(Q).some(q => q.busy || q.timer || q.fns.length);
+    const f0 = FAILS, t0 = Date.now();
+    while (busy()) {
+      if (Date.now() - t0 > maxMs) { const e = new Error('timeout'); e.code = 'timeout'; throw e; }
+      await new Promise(r => setTimeout(r, 100));
+    }
+    if (FAILS > f0) { const e = new Error('save_failed'); e.code = 'save_failed'; throw e; }
+    return true;
+  };
   const clone = o => JSON.parse(JSON.stringify(o));
   function snapshot(rel, prefix) {
     const docs = FILES[rel] ? FILES[rel].data.docs : {};
