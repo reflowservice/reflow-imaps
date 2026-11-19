@@ -6,11 +6,16 @@ Applicativo web (PWA) con accesso tramite account Microsoft aziendale; i dati st
 
 ## Struttura
 
-| Cartella | Contenuto |
+| File / cartella | Contenuto |
 |---|---|
-| `docs/` | Specifica tecnica (`SPEC.md`): architettura, ruoli, modello dati, migrazione |
-| `prototipo/` | Modello della pagina del prototipo (artefatto Claude, novembre 2026), base del porting |
-| `tools/` | Strumenti Python per preparare un impianto: estrazione della geometria dal layout PDF vettoriale, abbinamento al registro seriali, griglia schematica, generazione dei file dell'impianto |
+| `prototipo/app_template.html` | **Sorgente della pagina** (HTML, CSS, logica della mappa, schermata di aggiornamento). Si modifica qui. |
+| `tools/costruisci_web.py` | Genera `index.html` dal modello (loghi in `assets/`, login, pulsanti "Aggiorna" ed "Esci"). |
+| `index.html` | Pagina pubblicata su GitHub Pages. **Generata da `costruisci_web.py`, non va modificata a mano.** |
+| `cloud.js` | Login Microsoft (MSAL) e lettura/scrittura dei dati su SharePoint via Graph, con controllo di versione (eTag + `If-Match`) e aggiornamento automatico ogni 15 s. |
+| `aggiorna.js` | Pulsante "Aggiorna": salva la scheda aperta, attende i salvataggi in corso, ricarica. |
+| `manifest.json`, `assets/` | PWA (nome, icone, loghi). |
+| `tools/` (altri script) | Preparazione di un impianto: estrazione della geometria dal layout PDF vettoriale, abbinamento al registro seriali, griglia schematica, generazione dei file `app/mappe/` (`costruisci_app.py`). |
+| `docs/SPEC.md` | Specifica tecnica: architettura, ruoli, modello dati. |
 
 ## Dati
 
