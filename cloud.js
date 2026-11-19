@@ -97,6 +97,7 @@
   const Q = {};
   let FAILS = 0;   // salvataggi falliti (per IM.idle)
   function mutate(rel, fn) {
+    if (!IM.canEdit) { const e = new Error('Accesso in sola lettura'); e.code = 'invalid_argument'; return Promise.reject(e); }
     return new Promise((res, rej) => {
       const q = Q[rel] = Q[rel] || { fns: [], timer: null, busy: false };
       q.fns.push({ fn, res, rej });
@@ -171,7 +172,7 @@
   const user = {
     id: async () => IM.account ? (IM.account.name || IM.account.username) : null,
     profiles: async ids => Object.fromEntries((ids || []).map(i => [i, { name: i }])),
-    can: async () => true
+    can: async () => !!IM.canEdit
   };
   window.claude = {
     async use(name) {
@@ -183,6 +184,30 @@
     }
   };
 
+  // ---------- ruoli ----------
+  // ruoli.json nella cartella di iMAPS (non nel codice: il repository è pubblico):
+  //   { dominio, amministratori: [...], editori: [...] }   voce = email oppure nome (tutte le sue parole nel nome dell'account)
+  // amministratori ed editori modificano tutto; chiunque altro del dominio vede in sola lettura.
+  // Senza ruoli.json leggibile: sola lettura per tutti.
+  const norm = t => String(t || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9@.]+/g, ' ').trim();
+  const words = t => norm(t).replace(/[@.]/g, ' ').split(' ').filter(w => w.length > 1);
+  function matches(v, me) {
+    v = norm(v); if (!v) return false;
+    if (v.includes('@')) return v === me.email;
+    const w = words(v); return w.length > 0 && w.every(x => me.tok.has(x));
+  }
+  async function resolveRole() {
+    let me = {};
+    try { const r = await graph('/me?$select=displayName,mail,userPrincipalName'); if (r.ok) me = await r.json(); } catch (e) { /* si usa l'account MSAL */ }
+    const email = String(me.mail || me.userPrincipalName || IM.account.username || '').toLowerCase();
+    const who = { email, tok: new Set(words(me.displayName || IM.account.name || '')) };
+    let R = null; try { const f = await getFile('ruoli.json'); R = f && f.body; } catch (e) { R = null; }
+    const has = k => !!(R && Array.isArray(R[k]) && R[k].some(v => matches(v, who)));
+    if (R && R.dominio && !email.endsWith('@' + String(R.dominio).toLowerCase())) throw new Error('Accesso riservato agli account aziendali.');
+    IM.role = has('amministratori') ? 'amministratore' : has('editori') ? 'editore' : 'lettura';
+    IM.canEdit = IM.role !== 'lettura';
+  }
+
   // ---------- avvio: login, poi catalogo e dati base degli impianti nella pagina ----------
   function inject(attr, id, text) {
     const s = document.createElement('script'); s.type = 'application/json'; s.setAttribute(attr, id);
@@ -193,6 +218,7 @@
     const r = await pca.handleRedirectPromise();
     IM.account = (r && r.account) || pca.getAllAccounts()[0] || null;
     if (!IM.account) return false;
+    await site(); await resolveRole();
     const cat = await getFile('app/mappe/catalogo.json', true);
     if (!cat) throw new Error('Catalogo degli impianti non trovato su SharePoint.');
     const list = JSON.parse(cat.body);
