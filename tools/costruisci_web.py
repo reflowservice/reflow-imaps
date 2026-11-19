@@ -26,7 +26,7 @@ sost("data:image/png;base64,__LOGO_W__", "assets/logo_w.png", 3)
 sost("data:image/png;base64,__LOGO_C__", "assets/logo_c.png", 2)
 sost("__MAPPE__", "")
 sost('<link rel="preconnect" href="https://fonts.googleapis.com">',
-     '<link rel="manifest" href="manifest.json">\n<link rel="icon" href="assets/icon-192.png">\n'
+     '<link rel="manifest" href="manifest.json">\n<script>/* Finestra a tutto schermo quando l\'app installata si apre su PC (una volta per finestra, non dopo Aggiorna) */(function(){try{var m=function(q){return matchMedia(q).matches};if(!(m(\'(display-mode: standalone)\')||m(\'(display-mode: window-controls-overlay)\'))||!m(\'(pointer: fine)\')||sessionStorage.getItem(\'reflow_maxwin\'))return;sessionStorage.setItem(\'reflow_maxwin\',\'1\');var s=screen,w=s.availWidth,h=s.availHeight;if(outerWidth>=w-8&&outerHeight>=h-8)return;moveTo(s.availLeft||0,s.availTop||0);resizeTo(w,h)}catch(e){}})();</script>\n<link rel="icon" href="assets/icon-192.png">\n'
      '<link rel="apple-touch-icon" href="assets/icon-192.png">\n<meta name="theme-color" content="#18063c">\n'
      '<link rel="preconnect" href="https://fonts.googleapis.com">')
 sost("</header>",
