@@ -17,7 +17,7 @@ Nasce come artefatto Claude (prototipo funzionante, 11-12/11/2026, impianto pilo
 | Accesso | MSAL.js (msal-browser), tenant Reflow, registrazione **REFLOW ONE** condivisa con REFLOW PLANNER, ORBIT e STATUS (client ID `ef16e670-e362-4954-a912-b628afde91a0`), tipo SPA, redirect `https://reflowservice.github.io/reflow-imaps/`, permessi delegati User.Read, Sites.ReadWrite.All, Files.ReadWrite.All con consenso amministratore | La registrazione dedicata REFLOW iMAPS (creata il 13/11/2026) richiede un consenso amministratore che il tenant non concede agli utenti: non usata. Modificare REFLOW ONE tocca tutte e quattro le app |
 | Dati condivisi | Un file JSON per impianto in `REFLOW iMAPS/dati/<id impianto>.json`, scritto via Graph con controllo di versione (eTag, `If-Match`): se un altro utente ha salvato nel frattempo, l'app ricarica il file, riapplica la sola modifica dell'utente e riprova | Decisione 13/11/2026. Le liste SharePoint (scelta iniziale) richiedono il permesso "Gestisci elenchi" sul sito `ReflowArchive`, che gli utenti non hanno. Scartati i file JSON riscritti senza controllo come nel Planner: con più persone in parallelo l'ultimo salvataggio cancella gli altri |
 | Dati di base degli impianti | File JSON in `3_CONTROL ROOM/8 - FILE DI CONTESTO AI/REFLOW iMAPS/app/mappe/` (catalogo + un `dati.json` e un `seriali.json` per impianto), letti via Graph | Sono già prodotti oggi da `costruisci_app.py`; aggiungere un impianto non richiede di ripubblicare l'app |
-| Documenti caricati | Da definire con l'aggiunta impianti dall'app (oggi le richieste sono solo record in `REFLOW iMAPS/richieste/richieste.json`) | Restano nell'archivio aziendale |
+| Documenti caricati | `REFLOW iMAPS/richieste/<id richiesta>/` su SharePoint (dal 20/11/2026), via Graph: caricamento semplice fino a 4 MB, sessione di upload a blocchi oltre | Restano nell'archivio aziendale |
 | Aggiunta impianti | Fase 1: l'ufficio tecnico carica i documenti dall'app ("In preparazione"); l'elaborazione (geometria, abbinamento registro, controllo dubbi) la fa Luca con gli strumenti Python e pubblica i JSON. Fase 2 (da valutare dopo 2-3 impianti veri): elaborazione automatica | Gli script usano PyMuPDF, che non gira nel browser (verificato su Pyodide 0.27.2). Alternative per la fase 2: Azure Function Python che riusa gli script, oppure estrazione riscritta in JS con pdf.js |
 | PDF | jsPDF 2.5.1 + jspdf-autotable 3.8.2 nel browser | Già collaudati nel prototipo |
 
@@ -52,7 +52,7 @@ Le chiavi sono i percorsi del database del prototipo senza il prefisso `impianti
 Per i moduli da file la chiave è la posizione trascritta sulla carta. Ogni salvataggio è una modifica puntuale (una scheda, una rilevazione, una correzione) applicata all'ultima versione del file con `If-Match`; in caso di conflitto (HTTP 412) si ricarica e si riapplica. Il file resta piccolo (decine di KB anche con centinaia di schede).
 
 ### 4.2 Impianti in preparazione: `REFLOW iMAPS/richieste/richieste.json`
-Stessa forma del file dati (`{versione, aggiornato, docs}`), chiavi `richieste/<rid>` (cliente, impianto, codice, località, kWp, modulo, note, stato in_preparazione|pubblicato, impianto_id, by, at). In questa versione "Aggiungi impianto" è nascosto e il file non viene scritto: il caricamento dei documenti dall'app è da realizzare (§7).
+Stessa forma del file dati (`{versione, aggiornato, docs}`), chiavi `richieste/<rid>` (cliente, impianto, codice, località, kWp, modulo, note, stato in_preparazione|pubblicato, impianto_id, by, at). Ogni voce ha `files: [{tipo (layout|suf|registro|altro), nome, id (driveItem), url, size}]`; i file stanno in `REFLOW iMAPS/richieste/<rid>/` (nomi mai sovrascritti: conflictBehavior rename). Gli Excel si caricano come un CSV per foglio. Eliminare una richiesta sposta i documenti e la cartella vuota nel cestino di SharePoint.
 
 ### 4.3 Dati di base degli impianti: `REFLOW iMAPS/app/mappe/`
 `catalogo.json` e, per impianto, `dati.json` (geometria, attività, moduli da file) e `seriali.json`, prodotti da `tools/costruisci_app.py`.
@@ -66,7 +66,7 @@ Stessa forma del file dati (`{versione, aggiornato, docs}`), chiavi `richieste/<
 5. Spostamento di un modulo per errori di trascrizione (trascinamento o "Sposta"), con ritorno alla posizione della carta.
 6. "Ripristina modifiche" (ultimo minuto, dispositivo corrente).
 7. Estrai layout (PDF tecnici) ed Estrazione seriali (PDF PM / Ufficio Pratiche).
-8. Aggiungi impianto: presente nel prototipo, **nascosto nell'app** finché non c'è il caricamento dei documenti su SharePoint (§7).
+8. Aggiungi impianto (dal 20/11/2026): modulo con dati e documenti, caricati su SharePoint; l'impianto compare come "In preparazione" finché non viene elaborato (§7). Pulsante visibile solo a chi può modificare (ruoli, §9).
 9. Pulsante "Aggiorna" (19/11/2026): salva la scheda aperta, attende la coda di scrittura, ricarica la pagina con una schermata di aggiornamento (rosa dei venti, minimo 3 s).
 
 ## 6. Migrazione dal prototipo (conclusa)
@@ -75,7 +75,7 @@ Beta dell'app online dal 13/11/2026 con la pagina del prototipo e `cloud.js`. Il
 
 ## 7. Aggiunta di un impianto (fase 1)
 
-1. Ufficio tecnico: "Aggiungi impianto" → dati + layout as built (PDF vettoriale), SUF, registro seriali, altri documenti → `REFLOW iMAPS/richieste/<id>/` (richiesta.json + file).
+1. Chi può modificare (amministratore, editori): "Aggiungi impianto" → dati + layout as built (PDF vettoriale, obbligatorio), SUF, registro seriali, altri documenti → file in `REFLOW iMAPS/richieste/<id>/`, voce in `richieste/richieste.json`.
 2. Luca (con Claude, skill `reflow-imaps`): estrazione geometria, abbinamento registro, verifica dei dubbi, generazione `dati.json`/`seriali.json`, aggiornamento `catalogo.json` nella cartella `app/mappe/`, stato richiesta → pubblicato.
 3. L'impianto compare nell'app senza ripubblicarla.
 
@@ -85,7 +85,7 @@ Inverter (serve abbinamento stringhe-inverter), modalità offline completa, elab
 
 ## 9. Decisioni aperte
 
-- Ruoli: impostazione condivisa da Luca il 19/11/2026 (Lettura / Compilatore / Amministratore, file `ruoli.json` + permessi SharePoint della cartella), dettaglio per app da definire.
+- Ruoli (deciso 19/11/2026): `REFLOW iMAPS/ruoli.json` con `dominio`, `amministratori`, `editori` (email o nome); amministratore ed editori modificano tutto, gli altri account del dominio leggono, gli esterni sono respinti.
 - Chi compone l'ufficio tecnico e chi tra i tecnici usa l'app dal telefono.
 - Redirect URI per le prove in locale (da aggiungere alla registrazione quando serve).
 
@@ -93,4 +93,5 @@ Inverter (serve abbinamento stringhe-inverter), modalità offline completa, elab
 
 - 12/11/2026: applicativo sul modello del Planner; repository pubblico, GitHub Pages; aggiunta impianti fase 1 con elaborazione di Luca.
 - 13/11/2026: app registration dedicata REFLOW iMAPS (poi non usata: si usa la registrazione condivisa REFLOW ONE); dati in file JSON per impianto con eTag invece delle liste SharePoint (permesso "Gestisci elenchi" non disponibile).
-- 19/11/2026: pulsante "Aggiorna"; verificato sul file reale che l'eTag letto dal download coincide con quello dei metadati; pulizia delle copie del prototipo su SharePoint; `costruisci_app.py` produce solo `app/mappe/`.
+- 20/11/2026: "Aggiungi impianto" attivo (caricamento documenti su SharePoint).
+- 19/11/2026: ruoli da `ruoli.json` (`358554e`); pulsante "Aggiorna"; verificato sul file reale che l'eTag letto dal download coincide con quello dei metadati; pulizia delle copie del prototipo su SharePoint; `costruisci_app.py` produce solo `app/mappe/`.
