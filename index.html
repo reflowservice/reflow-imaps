@@ -674,7 +674,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-closemodal
 document.addEventListener('keydown',e=>{if(e.key==='Escape')['addpop','rqpop'].forEach(id=>{if(!$(id).hidden)closeModal(id);});});
 $('b-addimp').onclick=()=>{$('addfrm').reset();$('a-msg').textContent='';$('a-go').disabled=false;openModal('addpop');$('a-cli').focus();};
 const OKT=/\.(pdf|csv|txt|png|jpe?g|webp|gif|heic)$/i;
-async function upFile(file,tipo,out){
+async function upFile(file,tipo,out,rid){
   if(file.size>20*1024*1024)throw new Error(`${file.name} supera 20 MB`);
   if(/\.xlsx?$/i.test(file.name)){
     if(!window.XLSX)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
@@ -682,14 +682,14 @@ async function upFile(file,tipo,out){
     for(const sh of wb.SheetNames){
       const csv=XLSX.utils.sheet_to_csv(wb.Sheets[sh],{FS:';',blankrows:false});
       const nome=`${file.name.replace(/\.xlsx?$/i,'')}__${sh}.csv`;
-      const r=await assets.upload(new File([csv],nome,{type:'text/csv'}));
+      const r=await assets.upload(new File([csv],nome,{type:'text/csv'}),{cartella:rid});
       out.push({tipo,nome,id:r.id,url:r.url,size:r.sizeBytes,foglio:sh,origine:file.name});
     }
     return;
   }
   if(!OKT.test(file.name))throw new Error(`${file.name}: formato non accettato`);
-  const r=await assets.upload(file);
-  out.push({tipo,nome:file.name,id:r.id,url:r.url,size:r.sizeBytes});
+  const r=await assets.upload(file,{cartella:rid});
+  out.push({tipo,nome:r.nome||file.name,id:r.id,url:r.url,size:r.sizeBytes});
 }
 $('addfrm').addEventListener('submit',async ev=>{
   ev.preventDefault(); if(!db||!assets)return;
@@ -702,10 +702,10 @@ $('addfrm').addEventListener('submit',async ev=>{
   if(!jobs.some(j=>j[1]==='layout')){msg.textContent='Serve il layout as built in PDF.';return;}
   const bad=jobs.find(([f])=>!OKT.test(f.name)&&!/\.xlsx?$/i.test(f.name));
   if(bad){msg.textContent=`${bad[0].name}: formato non accettato.`;return;}
-  go.disabled=true; const files=[];
+  go.disabled=true; const files=[], rid='q'+Date.now().toString(36);
   try{
-    for(let i=0;i<jobs.length;i++){msg.textContent=`Carico ${i+1} di ${jobs.length}: ${jobs[i][0].name}…`;await upFile(jobs[i][0],jobs[i][1],files);}
-    const rid='q'+Date.now().toString(36), uid=user?await user.id():null;
+    for(let i=0;i<jobs.length;i++){msg.textContent=`Carico ${i+1} di ${jobs.length}: ${jobs[i][0].name}…`;await upFile(jobs[i][0],jobs[i][1],files,rid);}
+    const uid=user?await user.id():null;
     const row={cliente:$('a-cli').value.trim(),impianto:$('a-imp').value.trim(),codice:$('a-cod').value.trim(),localita:$('a-loc').value.trim(),
       potenza_kwp:$('a-kwp').value.trim(),modulo:{marca:$('a-mar').value.trim(),modello:$('a-mod').value.trim(),potenza_w:$('a-w').value.trim()},
       note:$('a-note').value.trim(),files,stato:'in_preparazione',by:uid,at:new Date().toISOString()};
@@ -713,6 +713,7 @@ $('addfrm').addEventListener('submit',async ev=>{
     closeModal('addpop'); drawHome(); alertBox(`Impianto "${row.impianto}" aggiunto come "In preparazione". Ora chiedi a Claude in chat di elaborarlo.`);
   }catch(e){
     for(const f of files){try{await assets.delete(f.id);}catch(_){}}
+    try{if(assets.removeFolder)await assets.removeFolder(rid);}catch(_){}
     msg.textContent=(e&&e.message?e.message+'. ':'')+'Caricamento non riuscito: nessun file è stato tenuto, riprova.'; go.disabled=false;
   }
 });
@@ -733,7 +734,7 @@ function drawRq(id){
   const n=$('rq-delno');if(n)n.onclick=()=>{rqAsk=false;drawRq(id);};
   const ok=$('rq-delok');if(ok)ok.onclick=async()=>{
     $('rq-msg').textContent='Elimino…';
-    try{for(const f of (r.files||[])){try{if(assets)await assets.delete(f.id);}catch(_){}} await db.doc(`richieste/${id}`).delete(); delete RICH[id]; closeModal('rqpop'); drawHome(); alertBox('Richiesta eliminata.');}
+    try{for(const f of (r.files||[])){try{if(assets)await assets.delete(f.id);}catch(_){}} try{if(assets&&assets.removeFolder)await assets.removeFolder(id);}catch(_){} await db.doc(`richieste/${id}`).delete(); delete RICH[id]; closeModal('rqpop'); drawHome(); alertBox('Richiesta eliminata.');}
     catch(e){$('rq-msg').textContent='Eliminazione non riuscita, riprova.';}
   };
 }
