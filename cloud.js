@@ -169,6 +169,52 @@
       };
     }
   };
+  // ---------- documenti delle richieste di nuovi impianti ----------
+  // <BASE>/richieste/<id richiesta>/<nome file>: caricamento semplice fino a 4 MB, a blocchi oltre (sessione di upload Graph).
+  // Il nome non si sovrascrive mai (conflictBehavior rename). Eliminare = cestino di SharePoint.
+  const pulisciNome = n => String(n || 'file').replace(/[\\/:*?"<>|#%]+/g, '_').replace(/^[\s.]+|[\s.]+$/g, '').slice(0, 120) || 'file';
+  const pulisciId = n => String(n || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40) || ('q' + Date.now().toString(36));
+  function vietato() { const e = new Error('Accesso in sola lettura'); e.code = 'invalid_argument'; return e; }
+  const assets = {
+    async upload(file, opt) {
+      if (!IM.canEdit) throw vietato();
+      await site();
+      const rel = `richieste/${pulisciId(opt && opt.cartella)}/${pulisciNome(file.name)}`;
+      let r;
+      if (file.size <= 4 * 1024 * 1024) {
+        r = await graph(item(rel) + '/content?@microsoft.graph.conflictBehavior=rename', { method: 'PUT', headers: { 'Content-Type': file.type || 'application/octet-stream' }, body: file });
+      } else {
+        const s = await graph(item(rel) + '/createUploadSession', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ item: { '@microsoft.graph.conflictBehavior': 'rename' } }) });
+        if (!s.ok) throw new Error(`Caricamento di ${file.name} non riuscito (${s.status})`);
+        const url = (await s.json()).uploadUrl, CH = 320 * 1024 * 10;   // blocchi da 3,2 MB (multipli di 320 KiB)
+        for (let a = 0; a < file.size; a += CH) {
+          const b = Math.min(a + CH, file.size);
+          r = await fetch(url, { method: 'PUT', headers: { 'Content-Range': `bytes ${a}-${b - 1}/${file.size}` }, body: file.slice(a, b) });
+          if (!r.ok && r.status !== 202) break;
+        }
+      }
+      if (!r || !r.ok) throw new Error(`Caricamento di ${file.name} non riuscito (${r ? r.status : '?'})`);
+      const it = await r.json();
+      return { id: it.id, url: it.webUrl, sizeBytes: it.size, nome: it.name };
+    },
+    async delete(id) {
+      if (!IM.canEdit) throw vietato();
+      await site();
+      const r = await graph(`/sites/${siteId}/drive/items/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (!r.ok && r.status !== 404) throw new Error(`Eliminazione non riuscita (${r.status})`);
+    },
+    async removeFolder(cartella) {   // solo se vuota: i documenti si tolgono prima uno per uno
+      if (!IM.canEdit) throw vietato();
+      await site();
+      const rel = `richieste/${pulisciId(cartella)}`;
+      const r = await graph(item(rel) + '/children?$select=id&$top=1');
+      if (!r.ok) return;
+      if ((await r.json()).value.length) return;
+      const m = await graph(item(rel) + '?$select=id'); if (!m.ok) return;
+      await graph(`/sites/${siteId}/drive/items/${encodeURIComponent((await m.json()).id)}`, { method: 'DELETE' });
+    }
+  };
   const user = {
     id: async () => IM.account ? (IM.account.name || IM.account.username) : null,
     profiles: async ids => Object.fromEntries((ids || []).map(i => [i, { name: i }])),
@@ -180,7 +226,8 @@
       if (!ok) return null;
       if (name === 'db') return db;
       if (name === 'user') return user;
-      return null;   // downloads: la pagina salva i PDF da sé; assets: aggiunta impianti non ancora disponibile
+      if (name === 'assets') return IM.canEdit ? assets : null;   // documenti delle richieste: solo chi può modificare
+      return null;   // downloads: la pagina salva i PDF da sé
     }
   };
 
